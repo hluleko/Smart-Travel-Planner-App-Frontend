@@ -3,35 +3,42 @@
     <h2>Register</h2>
     <form @submit.prevent="register" class="register-form">
       <div class="form-group">
-        <input v-model="user.username" placeholder="Username" required />
+        <input v-model="user.username" placeholder="Username" required @input="validateUsername" />
+        <p v-if="errors.username" class="error">{{ errors.username }}</p>
       </div>
+
       <div class="form-group">
-        <input v-model="user.email" type="email" placeholder="Email" required />
+        <input v-model="user.email" type="email" placeholder="Email" required @input="validateEmail" />
+        <p v-if="errors.email" class="error">{{ errors.email }}</p>
       </div>
+
       <div class="form-group">
-        <input v-model="user.password" type="password" placeholder="Password" required />
+        <input v-model="user.password" type="password" placeholder="Password" required @input="validatePassword" />
+        <p v-if="errors.password" class="error">{{ errors.password }}</p>
       </div>
+
       <div class="form-group">
-        <label>Destination:</label>
         <input v-model="user.destination" placeholder="Where do you want to go?" required />
       </div>
+
       <div class="form-group">
-        <label>Budget (ZAR):</label>
-        <input v-model="user.budget" type="number" placeholder="Enter budget" required />
+        <input v-model="user.budget" type="number" placeholder="Enter budget" required @input="validateBudget" />
+        <p v-if="errors.budget" class="error">{{ errors.budget }}</p>
       </div>
+
       <div class="form-group">
-        <label>Dietary Restrictions:</label>
         <input v-model="user.dietary_restrictions" placeholder="E.g., Vegetarian, Halal" />
       </div>
+
       <div class="form-group">
-        <label>Accessibility Needs:</label>
         <input v-model="user.accessibility_needs" placeholder="E.g., Wheelchair access" />
       </div>
+
       <div class="form-group">
-        <label>Preferred Language:</label>
         <input v-model="user.language_preferences" placeholder="E.g., English, Zulu" />
       </div>
-      <button type="submit" class="register-btn">Register</button>
+
+      <button type="submit" class="register-btn" :disabled="hasErrors">Register</button>
     </form>
     <p class="message">{{ message }}</p>
   </div>
@@ -53,11 +60,23 @@ export default {
         accessibility_needs: "",
         language_preferences: "",
       },
+      errors: {
+        username: "",
+        email: "",
+        password: "",
+        budget: "",
+      },
       message: "",
     };
   },
+  computed: {
+    hasErrors() {
+      return Object.values(this.errors).some((error) => error !== "");
+    },
+  },
   methods: {
     async register() {
+      if (this.hasErrors) return;
       try {
         await registerUser(this.user);
         this.message = "Registered successfully!";
@@ -65,6 +84,28 @@ export default {
       } catch (error) {
         this.message = error.response?.data?.error || "Registration failed.";
       }
+    },
+    validateUsername() {
+      const regex = /^[a-zA-Z0-9]+$/;
+      this.errors.username = regex.test(this.user.username)
+        ? ""
+        : "Username should only contain letters and numbers.";
+    },
+    validateEmail() {
+      const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      this.errors.email = regex.test(this.user.email)
+        ? ""
+        : "Enter a valid email address.";
+    },
+    validatePassword() {
+      this.errors.password = this.user.password.length >= 6
+        ? ""
+        : "Password must be at least 6 characters long.";
+    },
+    validateBudget() {
+      this.errors.budget = this.user.budget > 0
+        ? ""
+        : "Budget must be a positive number.";
     },
   },
 };
@@ -95,26 +136,16 @@ h2 {
   margin-bottom: 1.5rem;
 }
 
-label {
-  display: block;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-
 input {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 1rem;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
-  box-sizing: border-box;
 }
 
 input:focus {
   border-color: #007bff;
-  box-shadow: 0 0 8px rgba(0, 123, 255, 0.3);
   outline: none;
 }
 
@@ -123,24 +154,19 @@ input:focus {
   border: none;
   border-radius: 8px;
   font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
   background: linear-gradient(135deg, #007bff, #00bfff);
   color: white;
   width: 100%;
   margin-top: 1rem;
-  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
-.register-btn:hover {
-  background: linear-gradient(135deg, #00bfff, #007bff);
-  transform: translateY(-2px);
+.register-btn:disabled {
+  background: gray;
+  cursor: not-allowed;
 }
 
-.message {
-  margin-top: 1.5rem;
-  color: #007bff;
+.error {
   color: red;
-  font-weight: 500;
+  font-size: 0.875rem;
 }
 </style>

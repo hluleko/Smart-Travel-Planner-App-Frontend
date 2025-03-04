@@ -41,6 +41,10 @@
       <button @click="logOut" class="logout-btn">Log Out</button>
     </div>
 
+    <br/>
+        <button @click="$router.push('/findlocations')" >Find Locations</button>
+    <br/>
+
     <p class="message">{{ message }}</p>
   </div>
 </template>
