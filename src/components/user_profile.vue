@@ -1,38 +1,51 @@
 <template>
   <div class="container">
     <h2>My Profile</h2>
+
     <div class="profile-pic">
       <img :src="user.profileImage || defaultProfileImage" alt="Profile Picture" />
     </div>
+
     <form @submit.prevent="updateProfile" class="profile-form">
       <div class="form-group">
         <label>Username:</label>
         <input v-model="user.username" disabled />
       </div>
+
       <div class="form-group">
         <label>Email:</label>
         <input v-model="user.email" disabled />
       </div>
+
       <div class="form-group">
         <label>Destination:</label>
-        <input v-model="user.destination" placeholder="Enter your destination" />
+        <input
+          ref="destinationInput"
+          v-model="user.destination"
+          placeholder="Enter your destination"
+        />
       </div>
+
       <div class="form-group">
         <label>Budget (ZAR):</label>
         <input v-model="user.budget" type="number" placeholder="Enter budget" />
       </div>
+
       <div class="form-group">
         <label>Dietary Restrictions:</label>
         <input v-model="user.dietary_restrictions" placeholder="E.g., Vegetarian, Halal" />
       </div>
+
       <div class="form-group">
         <label>Accessibility Needs:</label>
         <input v-model="user.accessibility_needs" placeholder="E.g., Wheelchair access" />
       </div>
+
       <div class="form-group">
         <label>Preferred Language:</label>
         <input v-model="user.language_preferences" placeholder="E.g., English, Zulu" />
       </div>
+
       <button type="submit" class="update-btn">Update Profile</button>
     </form>
 
@@ -41,9 +54,9 @@
       <button @click="logOut" class="logout-btn">Log Out</button>
     </div>
 
-    <br/>
-        <button @click="$router.push('/findlocations')" >Find Locations</button>
-    <br/>
+    <br />
+    <button @click="$router.push('/findlocations')">Find Locations</button>
+    <br />
 
     <p class="message">{{ message }}</p>
   </div>
@@ -51,9 +64,10 @@
 
 <script>
 import { getUserProfile, updateUserProfile, deleteUserProfile } from "../api";
-import default_profile_pic from '../assets/profileicon.png';
+import default_profile_pic from "../assets/profileicon.png";
 
 export default {
+  name: "MyProfile",
   data() {
     return {
       user: {
@@ -64,10 +78,11 @@ export default {
         dietary_restrictions: "",
         accessibility_needs: "",
         language_preferences: "",
-        profileImage: "" // Placeholder for profile image URL
+        profileImage: ""
       },
       message: "",
-      defaultProfileImage: default_profile_pic // Placeholder profile image
+      defaultProfileImage: default_profile_pic,
+      apiKey: "AIzaSyDxU7_6cH1hUL7Yv_IWXKJ4sVlIQAINp2E" // 🔐 Replace with your actual Google Maps API key
     };
   },
   async mounted() {
@@ -80,10 +95,12 @@ export default {
     try {
       const response = await getUserProfile(token);
       this.user = response.data;
-      console.log('User details here : ', this.user);
+      console.log("User details here:", this.user);
     } catch (error) {
       this.message = error.response?.data?.error || "Failed to load profile.";
     }
+
+    this.loadGoogleMaps(); // 🌍 Load Google Maps Places Autocomplete
   },
   methods: {
     async updateProfile() {
@@ -106,7 +123,7 @@ export default {
         await deleteUserProfile(token);
         this.message = "Profile deleted successfully!";
         localStorage.removeItem("token");
-        this.$router.push("/login"); // Redirect to register page after deletion
+        this.$router.push("/login");
       } catch (error) {
         this.message = error.response?.data?.error || "Failed to delete profile.";
       }
@@ -115,10 +132,38 @@ export default {
     logOut() {
       localStorage.removeItem("token");
       this.$router.push("/login");
+    },
+
+    loadGoogleMaps() {
+      if (window.google && window.google.maps) {
+        this.initAutocomplete();
+      } else {
+        const script = document.createElement("script");
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        script.onload = this.initAutocomplete;
+        document.head.appendChild(script);
+      }
+    },
+
+    initAutocomplete() {
+      const input = this.$refs.destinationInput;
+      if (!input) return;
+
+      const autocomplete = new google.maps.places.Autocomplete(input, {
+        componentRestrictions: { country: "ZA" } // 🇿🇦 South Africa only
+      });
+
+      autocomplete.addListener("place_changed", () => {
+        const place = autocomplete.getPlace();
+        this.user.destination = place.formatted_address || place.name;
+      });
     }
   }
 };
 </script>
+
 
 <style scoped>
 .container {

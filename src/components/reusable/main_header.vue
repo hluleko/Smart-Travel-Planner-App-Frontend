@@ -1,7 +1,20 @@
 <template>
   <header class="header">
-    <h1>Smart Travel Planner</h1>
-    <p class="tagline">Your journey, simplified.</p>
+    <div @click="$router.push('/')" class="logo">Smart<span class="red">Travel</span><span class="blue">Planner</span></div>
+    <nav class="nav">
+      <span @click="$router.push('/favorites')" class="nav-item" style="cursor: pointer">
+        <span class="icon">♡</span> Favorites
+      </span>
+      <span @click="$router.push('/language')" class="nav-item" style="cursor: pointer">
+        <span class="icon">🌐</span> EN · R
+      </span>
+      <span @click="$router.push('/login')" class="nav-item" style="cursor: pointer">
+        <span class="icon">👤</span> Log in
+      </span>
+      <span @click="$router.push('/menu')" class="nav-item" style="cursor: pointer">
+        <span class="icon">☰</span> Menu
+      </span>
+    </nav>
   </header>
 </template>
 
@@ -13,24 +26,48 @@ export default {
 
 <style scoped>
 .header {
-  background-color: #007bff;
-  color: white;
-  text-align: center;
-  padding: 2rem 1rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  border-bottom: 1px solid #ddd;
+  background-color: white;
+  font-family: Arial, sans-serif;
 }
 
-h1 {
-  font-size: 2.5rem;
+.logo {
+  font-size: 1.8rem;
   font-weight: bold;
-  margin: 0;
-  letter-spacing: 1px;
 }
 
-.tagline {
-  font-size: 1.2rem;
-  margin: 0.5rem 0 0;
-  font-weight: 300;
-  opacity: 0.9;
+.logo .red {
+  color: #e63950;
+}
+
+.logo .blue {
+  color: #007bff;
+}
+
+.nav {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  color: #222;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.nav-item .icon {
+  margin-right: 0.4rem;
+  font-size: 1.1rem;
+}
+
+.nav-item:hover {
+  text-decoration: underline;
 }
 </style>
