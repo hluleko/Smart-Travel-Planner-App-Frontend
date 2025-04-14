@@ -1,7 +1,10 @@
 // src/api.js
 import axios from "axios";
 
-const API_URL = "https://smart-travel-planner-app-backend-production.up.railway.app"; 
+//const API_URL = "https://smart-travel-planner-app-backend-production.up.railway.app"; 
+
+const rawUrl = "https://smart-travel-planner-app-backend-production.up.railway.app"; 
+const API_URL = new URL(rawUrl).origin;
 
 export const registerUser = (user) => axios.post(`${API_URL}/register`, user);
 export const loginUser = (user) => axios.post(`${API_URL}/login`, user);
@@ -11,3 +14,4 @@ export const updateUserProfile = (token, userData) =>
     axios.put(`${API_URL}/profile`, userData, { headers: { Authorization: token } });
 export const deleteUserProfile = (token) =>
     axios.delete(`${API_URL}/profile`, { headers: { Authorization: token } });
+ 
