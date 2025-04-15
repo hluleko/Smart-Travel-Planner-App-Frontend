@@ -22,7 +22,7 @@
   
           <!-- Check-in -->
           <div class="search-input-container">
-            <label>Check-in</label>
+            <label>Start date</label>
             <VueDatePicker
               v-model="checkIn"
               placeholder="Add dates"
@@ -42,7 +42,7 @@
   
           <!-- Check-out -->
           <div class="search-input-container">
-            <label>Check-out</label>
+            <label>Start end</label>
             <VueDatePicker
               v-model="checkOut"
               placeholder="Add dates"
@@ -56,7 +56,7 @@
   
           <!-- Guests/Rooms -->
           <div class="search-input-container">
-            <label>Guests & Rooms</label>
+            <label>Guests</label>
             <div class="guest-room-trigger" @click.stop="toggleDropdown">
               <div>{{ totalGuests }} guests · {{ rooms }} room{{ rooms > 1 ? 's' : '' }}</div>
               <svg class="chevron-icon" viewBox="0 0 24 24">
