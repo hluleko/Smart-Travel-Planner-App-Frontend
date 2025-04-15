@@ -27,15 +27,15 @@
       </div>
 
       <div class="form-group">
-        <input v-model="user.dietary_restrictions" placeholder="E.g., Vegetarian, Halal" />
+        <input v-model="user.dietary_restrictions" placeholder=" Diet(e.g Vegetarian)" />
       </div>
 
       <div class="form-group">
-        <input v-model="user.accessibility_needs" placeholder="E.g., Wheelchair access" />
+        <input v-model="user.accessibility_needs" placeholder="Disability(optional)" />
       </div>
 
       <div class="form-group">
-        <input v-model="user.language_preferences" placeholder="E.g., English, Zulu" />
+        <input v-model="user.language_preferences" placeholder="Language" />
       </div>
 
       <button type="submit" class="register-btn" :disabled="hasErrors">Register</button>
