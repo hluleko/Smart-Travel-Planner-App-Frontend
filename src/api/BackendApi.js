@@ -1,4 +1,4 @@
-// src/api.js
+// src/api/BackendApi.js
 import axios from "axios";
 
 const API_URL = "https:smart-travel-planner-app-backend-production.up.railway.app"; 

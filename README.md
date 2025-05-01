@@ -1,2 +1,24 @@
-# Smart-Travel-Planner-App-Frontend
-The Smart Travel Planner App will assist users in planning trips by generating customized travel detailed plans based on their interests, preferences, and available time. It will combine user-generated reviews, recommendations, and real-time travel information to enhance the experience.
+# smart-travel-planner
+
+## Project setup
+```
+npm install
+```
+
+### Compiles and hot-reloads for development
+```
+npm run serve
+```
+
+### Compiles and minifies for production
+```
+npm run build
+```
+
+### Lints and fixes files
+```
+npm run lint
+```
+
+### Customize configuration
+See [Configuration Reference](https://cli.vuejs.org/config/).
