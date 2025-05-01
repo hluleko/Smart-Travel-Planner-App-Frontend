@@ -28,6 +28,10 @@
 
     <div v-if="loading" class="loading">Loading sites near you...</div>
 
+    <div v-if="tripCreatedMessage" class="trip-created-msg">
+      {{ tripCreatedMessage }}
+    </div>
+
     <div v-if="places.length" class="places-list">
       <div v-for="(place, index) in places" :key="index" class="place-card">
         <img :src="place.photo || defaultImage" alt="Place" class="place-image" />
@@ -40,6 +44,7 @@
             <strong>{{ place.budget }}</strong>
           </p>
           <p v-if="distance">Distance: {{ distance }} km</p>
+          <button @click="createTrip(place)" class="create-trip-button">Create Trip</button>
         </div>
       </div>
     </div>
@@ -67,6 +72,7 @@ export default {
       loading: false,
       defaultImage: "https://via.placeholder.com/150?text=No+Image",
       apiKey: googleMapsApiKey,
+      tripCreatedMessage: "",
     };
   },
   mounted() {
@@ -216,16 +222,61 @@ export default {
 
       const base = this.numPeople * this.numDays * basePerPersonPerDay;
       const travel = this.distance * travelRatePerKm;
-      const randomVariation = Math.floor(Math.random() * 2000); // R0 - R1999
+      const randomVariation = Math.floor(Math.random() * 2000);
 
       const minBudget = base + travel;
       const maxBudget = minBudget + randomVariation + 1000;
 
       return `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`;
     },
+    createTrip(place) {
+      const trip = {
+        location: place.name,
+        address: place.address,
+        rating: place.rating || "N/A",
+        photoUrl: place.photo || this.defaultImage,
+        budget: place.budget,
+        numPeople: this.numPeople,
+        numDays: this.numDays,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        distance: this.distance + " km",
+      };
+
+      console.log("Trip Created:", trip);
+
+      this.tripCreatedMessage = "🎉 Trip created successfully!";
+      setTimeout(() => {
+        this.tripCreatedMessage = "";
+      }, 3000);
+    },
   },
 };
 </script>
+
+<style scoped>
+.create-trip-button {
+  background-color: #28a745;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 8px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+.create-trip-button:hover {
+  background-color: #218838;
+}
+.trip-created-msg {
+  background-color: #d4edda;
+  color: #155724;
+  padding: 10px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: center;
+}
+</style>
+
 
 
 <style scoped>
