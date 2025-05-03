@@ -6,7 +6,7 @@
         <br/>
         <br/>
 
-        <LocationSearch />
+        <TripPlanner />
 
         <section class="features">
             <div class="feature">
@@ -33,11 +33,12 @@
 </template>
 
 <script>
-import LocationSearch from "@/components/maps/LocationSearch.vue";
+//import LocationSearch from "@/components/maps/LocationSearch.vue";
+import TripPlanner from "@/components/trip/TripPlanner.vue";
 
 export default {
     components: {
-        LocationSearch,
+        TripPlanner,
     },
     name: "LandingPage",
     methods: {
