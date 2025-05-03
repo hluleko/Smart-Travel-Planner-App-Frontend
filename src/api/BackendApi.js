@@ -1,13 +1,79 @@
-// src/api/BackendApi.js
 import axios from "axios";
 
-const API_URL = "https:smart-travel-planner-app-backend-production.up.railway.app"; 
+const API_URL = "https://smart-travel-planner-app-backend-production.up.railway.app/api";
 
-export const registerUser = (user) => axios.post(`${API_URL}/register`, user);
-export const loginUser = (user) => axios.post(`${API_URL}/login`, user);
-export const getUserProfile = (token) =>
-    axios.get(`${API_URL}/profile`, { headers: { Authorization: token } });
-export const updateUserProfile = (token, userData) =>
-    axios.put(`${API_URL}/profile`, userData, { headers: { Authorization: token } });
-export const deleteUserProfile = (token) =>
-    axios.delete(`${API_URL}/profile`, { headers: { Authorization: token } });
+// ===== User Authentication =====
+export const registerUser = (user) => axios.post(`${API_URL}/users/register`, user);
+export const loginUser = (user) => axios.post(`${API_URL}/users/login`, user);
+
+// ===== Profile =====
+export const getUserProfile = (token, userId) =>
+    axios.get(`${API_URL}/profile/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const updateUserProfile = (token, userId, userData) =>
+    axios.put(`${API_URL}/profile/${userId}`, userData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const deleteUserProfile = (token, userId) =>
+    axios.delete(`${API_URL}/profile/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });  
+
+// ===== Trips =====
+export const getAllTrips = (token) =>
+  axios.get(`${API_URL}/trips`, { headers: { Authorization: token } });
+
+export const getTripsByUserId = (token, userId) =>
+  axios.get(`${API_URL}/trips/user/${userId}`, { headers: { Authorization: token } });
+
+export const getTripById = (token, tripId) =>
+  axios.get(`${API_URL}/trips/${tripId}`, { headers: { Authorization: token } });
+
+export const createTrip = (token, tripData) =>
+  axios.post(`${API_URL}/trips`, tripData, { headers: { Authorization: token } });
+
+export const updateTrip = (token, tripId, tripData) =>
+  axios.put(`${API_URL}/trips/${tripId}`, tripData, { headers: { Authorization: token } });
+
+export const deleteTrip = (token, tripId) =>
+  axios.delete(`${API_URL}/trips/${tripId}`, { headers: { Authorization: token } });
+
+// ===== Destinations =====
+export const getDestinations = () =>
+  axios.get(`${API_URL}/destinations`);
+
+export const getDestinationById = (destinationId) =>
+  axios.get(`${API_URL}/destinations/${destinationId}`);
+
+export const addDestination = (token, destinationData) =>
+  axios.post(`${API_URL}/destinations`, destinationData, { headers: { Authorization: token } });
+
+// ===== Budgets =====
+export const getBudgets = (token) =>
+  axios.get(`${API_URL}/budgets`, { headers: { Authorization: token } });
+
+export const getBudgetByTripId = (token, tripId) =>
+  axios.get(`${API_URL}/budgets/trip/${tripId}`, { headers: { Authorization: token } });
+
+export const addBudget = (token, budgetData) =>
+  axios.post(`${API_URL}/budgets`, budgetData, { headers: { Authorization: token } });
+
+// ===== Reviews =====
+export const getReviews = () =>
+  axios.get(`${API_URL}/reviews`);
+
+export const getReviewsByDestinationId = (destinationId) =>
+  axios.get(`${API_URL}/reviews/destination/${destinationId}`);
+
+export const addReview = (token, reviewData) =>
+  axios.post(`${API_URL}/reviews`, reviewData, { headers: { Authorization: token } });
+
+// ===== Admin =====
+export const getAdminStats = (token) =>
+  axios.get(`${API_URL}/admin/stats`, { headers: { Authorization: token } });
+
+export const logAdminActivity = (token, activityData) =>
+  axios.post(`${API_URL}/admin/activity`, activityData, { headers: { Authorization: token } });

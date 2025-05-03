@@ -14,6 +14,7 @@ export default {
     AppHeader,
   },
   created() {
+    console.log('Here is the token right now: ', localStorage.getItem("authToken"));
     // Only try to fetch user if there is a token
     if (this.$store.state.token) {
       this.$store.dispatch('fetchUser')

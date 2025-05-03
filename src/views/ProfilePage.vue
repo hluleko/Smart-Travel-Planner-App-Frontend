@@ -1,187 +1,180 @@
 <template>
-  <div class="profile-container">
-    <h2>User Profile</h2>
+  <div class="profile-container" v-if="user">
+    <h2>Welcome, {{ user.username || user.email }}</h2>
 
-    <form @submit.prevent="handleUpdateProfile" v-if="user">
-      <div class="form-group">
-        <label>Username:</label>
-        <input type="text" :value="user.username" disabled />
+    <div class="profile-details">
+      <p><strong>Email:</strong> {{ user.email }}</p>
+      <p><strong>Name:</strong> {{ user.username || 'Not set' }}</p>
+      <p><strong>Language Preferences:</strong> {{ user.language_preferences || 'Not set' }}</p>
+    </div>
+
+    <div class="actions">
+      <button @click="openUpdateModal">Update Profile</button>
+      <button @click="handleLogout" class="logout">Logout</button>
+      <button @click="confirmDelete" class="delete">Delete Account</button>
+    </div>
+
+    <!-- Update Modal -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <h3>Update Profile</h3>
+        <form @submit.prevent="updateProfile">
+          <label>Username</label>
+          <input v-model="form.username" type="text" required />
+
+          <label>Email</label>
+          <input v-model="form.email" type="email" required />
+
+          <label>Language Preferences</label>
+          <input v-model="form.language_preferences" type="text" />
+
+          <button type="submit" :disabled="loading">
+            {{ loading ? 'Updating...' : 'Save' }}
+          </button>
+          <button type="button" @click="closeModal">Cancel</button>
+        </form>
       </div>
-
-      <div class="form-group">
-        <label>Email:</label>
-        <input type="email" :value="user.email" disabled />
-      </div>
-
-      <div class="form-group">
-        <label>Destination:</label>
-        <input v-model="form.destination" type="text" />
-      </div>
-
-      <div class="form-group">
-        <label>Budget:</label>
-        <input v-model="form.budget" type="number" step="0.01" />
-      </div>
-
-      <div class="form-group">
-        <label>Dietary Restrictions:</label>
-        <input v-model="form.dietary_restrictions" type="text" />
-      </div>
-
-      <div class="form-group">
-        <label>Accessibility Needs:</label>
-        <input v-model="form.accessibility_needs" type="text" />
-      </div>
-
-      <div class="form-group">
-        <label>Language Preferences:</label>
-        <input v-model="form.language_preferences" type="text" />
-      </div>
-
-      <button type="submit" :disabled="loading">
-        {{ loading ? 'Updating...' : 'Update Profile' }}
-      </button>
-
-      <button class="delete-btn" @click.prevent="handleDeleteProfile" :disabled="loading">
-        Delete Profile
-      </button>
-
-      <p class="message success" v-if="successMessage">{{ successMessage }}</p>
-      <p class="message error" v-if="errorMessage">{{ errorMessage }}</p>
-    </form>
+    </div>
   </div>
+
+  <div v-else class="loading">Loading user data...</div>
 </template>
 
 <script>
-import { mapState, mapActions } from 'vuex';
+import { mapState, mapMutations } from "vuex";
+import { updateUserProfile, deleteUserProfile } from "@/api/BackendApi";
 
 export default {
-  name: 'ProfilePage',
+  name: "ProfilePage",
   data() {
     return {
-      form: {
-        destination: '',
-        budget: '',
-        dietary_restrictions: '',
-        accessibility_needs: '',
-        language_preferences: '',
-      },
+      showModal: false,
       loading: false,
-      successMessage: '',
-      errorMessage: '',
+      form: {
+        username: "",
+        email: "",
+        language_preferences: "",
+      },
     };
   },
   computed: {
-    ...mapState(['user']),
-  },
-  created() {
-    console.log('User data on creation:', this.user); // Log user data for debugging
-    if (this.user) {
-      this.initForm(this.user);
-      console.log('User data after refresh :', this.user); // Log user data for debugging
-    }
+    ...mapState(["user", "token"]),
   },
   methods: {
-    ...mapActions(['updateProfile', 'deleteProfile', 'fetchUser']),
-    
-    initForm(user) {
-      if (user) {
-        this.form = {
-          destination: user.destination || '',
-          budget: user.budget || '',
-          dietary_restrictions: user.dietary_restrictions || '',
-          accessibility_needs: user.accessibility_needs || '',
-          language_preferences: user.language_preferences || '',
+    ...mapMutations(["logout", "setUser"]),
+
+    openUpdateModal() {
+      this.form.username = this.user.username || "";
+      this.form.email = this.user.email || "";
+      this.form.language_preferences = this.user.language_preferences || "";
+      this.showModal = true;
+    },
+    closeModal() {
+      this.showModal = false;
+    },
+
+    async updateProfile() {
+      this.loading = true;
+      try {
+        const updatedData = {
+          username: this.form.username,
+          email: this.form.email,
+          language_preferences: this.form.language_preferences,
         };
-      }
-    },
 
-    async handleUpdateProfile() {
-      this.loading = true;
-      this.successMessage = '';
-      this.errorMessage = '';
-      try {
-        await this.updateProfile(this.form);
-        await this.fetchUser();
-        this.successMessage = 'Profile updated successfully!';
+        console.log("Updating profile with data:", updatedData);
+        console.log("Updating profile with token:", this.token);
+        console.log("Updating profile with ID:", this.user.user_id);
+
+        await updateUserProfile(this.token, this.user.user_id, updatedData);
+        this.setUser({ ...this.user, ...updatedData });
+        this.closeModal();
       } catch (err) {
-        console.error('Update failed:', err);
-        this.errorMessage = err.response?.data?.error || 'Failed to update profile.';
+        console.error("Error updating profile:", err);
+        alert("Failed to update profile.");
       } finally {
         this.loading = false;
       }
     },
 
-    async handleDeleteProfile() {
-      if (!confirm('Are you sure you want to delete your profile? This action cannot be undone.')) return;
-      this.loading = true;
-      try {
-        await this.deleteProfile();
-        this.$router.push('/login');
-      } catch (err) {
-        this.errorMessage = 'Failed to delete profile.';
-      } finally {
-        this.loading = false;
+    handleLogout() {
+      this.logout();
+      this.$router.push("/login");
+    },
+
+    confirmDelete() {
+      if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+        this.deleteAccount();
       }
-    }
-  }
+    },
+
+    async deleteAccount() {
+      try {
+        await deleteUserProfile(this.token, this.user.user_id);
+        this.logout();
+        this.$router.push("/signup");
+      } catch (err) {
+        console.error("Error deleting profile:", err);
+        alert("Failed to delete account.");
+      }
+    },
+  },
 };
 </script>
 
 <style scoped>
 .profile-container {
-  max-width: 500px;
+  max-width: 600px;
   margin: 2rem auto;
   padding: 2rem;
-  border: 1px solid #ddd;
+  background: white;
   border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
-h2 {
-  margin-bottom: 1.5rem;
-  color: #007bff;
+
+.actions {
+  margin-top: 2rem;
+  display: flex;
+  gap: 1rem;
 }
-.form-group {
-  margin-bottom: 1rem;
-}
-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-input {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 4px;
-  border: 1px solid #ccc;
-}
+
 button {
-  width: 100%;
-  padding: 0.8rem;
-  background: #007bff;
-  border: none;
-  color: white;
+  padding: 0.5rem 1rem;
   font-weight: bold;
-  border-radius: 4px;
-  margin-top: 1rem;
   cursor: pointer;
 }
-button.delete-btn {
-  background: #dc3545;
-  margin-top: 0.5rem;
+
+.logout {
+  background-color: #6c757d;
+  color: white;
 }
-button:disabled {
-  background: #6c757d;
+
+.delete {
+  background-color: #dc3545;
+  color: white;
 }
-.message {
-  margin-top: 1rem;
-  font-weight: bold;
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.success {
-  color: green;
+
+.modal {
+  background: white;
+  padding: 2rem;
+  border-radius: 6px;
+  min-width: 300px;
 }
-.error {
-  color: red;
+
+.loading {
+  text-align: center;
+  margin-top: 4rem;
 }
 </style>

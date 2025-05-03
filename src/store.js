@@ -1,96 +1,74 @@
 // src/store.js
-import { createStore } from 'vuex';
-import {
-  loginUser,
-  getUserProfile,
-  registerUser,
-  updateUserProfile,
-  deleteUserProfile
-} from './api/BackendApi';
+import { createStore } from "vuex";
+import { getUserProfile } from "@/api/BackendApi";
 
-export default createStore({
+const store = createStore({
   state: {
-    user: null,
-    token: localStorage.getItem('auth_token') || null,  // Get token from localStorage on app load
+    token: localStorage.getItem("authToken") || null,
+    userId: localStorage.getItem("userId") || null,
+    user: JSON.parse(localStorage.getItem("userData")) || null,
   },
   mutations: {
-    setUser(state, user) {
-      state.user = user;
-    },
     setToken(state, token) {
       state.token = token;
       if (token) {
-        localStorage.setItem('auth_token', token); // Save token in localStorage
-        console.log('Token set in localStorage');
+        localStorage.setItem("authToken", token);
+        console.log("Token set in localStorage:", token);
       } else {
-        localStorage.removeItem('auth_token'); // Remove token from localStorage on logout
-        console.log('Token removed from localStorage');
+        localStorage.removeItem("authToken");
+        console.log("Token removed from localStorage");
       }
+    },
+    setUserId(state, userId) {
+      state.userId = userId;
+      if (userId) {
+        localStorage.setItem("userId", userId);
+        console.log("User ID set in localStorage:", userId);
+      } else {
+        localStorage.removeItem("userId");
+        console.log("User ID removed from localStorage");
+      }
+    },
+    setUser(state, user) {
+      state.user = user;
+      if (user) {
+        localStorage.setItem("userData", JSON.stringify(user));
+        console.log("User data set in localStorage:", user);
+      } else {
+        localStorage.removeItem("userData");
+        console.log("User data removed from localStorage");
+      }
+    },
+    logout(state) {
+      state.token = null;
+      state.userId = null;
+      state.user = null;
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("userId");
+      localStorage.removeItem("userData");
+      console.log("User logged out and data removed from localStorage");
     },
   },
   actions: {
-    // Login action
-    async login({ commit }, credentials) {
+    async fetchUser({ commit, state }) {
       try {
-        const res = await loginUser(credentials);
-        const token = res.data.token;
-        console.log('Token received:', token);
-        commit('setToken', token); // Store token in Vuex and localStorage
-        const profileRes = await getUserProfile(token);
-        commit('setUser', profileRes.data);
-        return true;
-      } catch (error) {
-        console.error('Login failed:', error);
-        throw error;
+        if (!state.token || !state.userId) {
+          console.warn("Token or userId missing. Skipping fetch.");
+          //commit("logout");
+          return;
+        }
+        const res = await getUserProfile(state.token, state.userId); // Ensure this function accepts userId
+        commit("setUser", res.data);
+      } catch (err) {
+        console.error("Failed to fetch user profile:", err);
+        commit("logout");
       }
-    },
-
-    // Fetch user on app startup if token exists
-    async fetchUser({ state, commit }) {
-      if (!state.token) return null; // If no token, return null
-      try {
-        const res = await getUserProfile(state.token); // Use token to fetch profile
-        commit('setUser', res.data);
-        console.log('User profile fetched:', res.data);
-        return res.data;
-      } catch (error) {
-        console.error('Failed to fetch user profile:', error);
-        commit('setUser', null);
-        commit('setToken', null); // Clear token if fetch fails
-        return null;
-      }
-    },
-
-    // Logout action
-    logout({ commit }) {
-      commit('setUser', null);
-      commit('setToken', null); // Clear token from localStorage and Vuex
-    },
-
-    // Register action
-    async register({ dispatch }, userData) {
-      await registerUser(userData);
-      return dispatch('login', {
-        email: userData.email,
-        password: userData.password,
-      });
-    },
-
-    // Update user profile action
-    async updateProfile({ state }, userData) {
-      console.log('Updating user profile with data:', userData);
-      if (!state.token) throw new Error('No token found. User must be logged in to update profile.');
-      return await updateUserProfile(state.token, userData);
-    },
-
-    // Delete user profile action
-    async deleteProfile({ state, dispatch }) {
-      await deleteUserProfile(state.token);
-      dispatch('logout');
     },
   },
   getters: {
+    isLoggedIn: (state) => !!state.token,
     userData: (state) => state.user,
-    isAuthenticated: (state) => !!state.token,  // Check if there's a token
   },
 });
+
+export default store;
