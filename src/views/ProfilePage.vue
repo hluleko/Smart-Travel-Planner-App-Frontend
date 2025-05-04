@@ -43,7 +43,7 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-import { updateUserProfile, deleteUserProfile } from "@/api/BackendApi";
+import { updateUserProfile, deleteUserProfile, logAdminActivity } from "@/api/BackendApi";
 
 export default {
   name: "ProfilePage",
@@ -112,6 +112,8 @@ export default {
     async deleteAccount() {
       try {
         await deleteUserProfile(this.token, this.user.user_id);
+        await logAdminActivity({ type: 'account_deleted' });
+        console.log('Admin activity logged successfully.');
         this.logout();
         this.$router.push("/signup");
       } catch (err) {

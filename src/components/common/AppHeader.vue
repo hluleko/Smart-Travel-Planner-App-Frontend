@@ -183,9 +183,9 @@ nav ul {
 }
 
 .register-button {
-  color: white;
+  color: #003b95; /* Dark blue on hover */
   border: none;
-  background: #003b95; /* Accent blue */
+  background: white; /* Accent blue */
 }
 
 .register-button:hover {

@@ -79,10 +79,13 @@ export const getAllTrips = (token) =>
   export const addReview = (token, reviewData) =>
     axios.post(`${API_URL}/reviews`, reviewData, { headers: { Authorization: `Bearer ${token}` } });
   
-  // Admin
-  export const getAdminStats = (token) =>
-    axios.get(`${API_URL}/admin/stats`, { headers: { Authorization: `Bearer ${token}` } });
+// Admin
+export const getAdminStats = (token) =>
+    axios.get(`${API_URL}/admin/stats`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
   
-  export const logAdminActivity = (token, activityData) =>
-    axios.post(`${API_URL}/admin/activity`, activityData, { headers: { Authorization: `Bearer ${token}` } });
+  // No token needed for logging activity 
+  export const logAdminActivity = (activityData) =>
+    axios.post(`${API_URL}/admin/activity`, activityData);
   

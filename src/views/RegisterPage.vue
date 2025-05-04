@@ -24,7 +24,7 @@
   </template>
   
   <script>
-  import { registerUser } from "@/api/BackendApi";
+  import { registerUser, logAdminActivity } from "@/api/BackendApi";
   
   export default {
     name: 'RegisterPage',
@@ -51,8 +51,15 @@
             password: this.password,
             language_preferences: this.language_preferences,
           };
+  
           const response = await registerUser(payload);
           this.success = response.data.message || 'Registration successful!';
+  
+          // Log activity (no token needed)
+          await logAdminActivity({ type: 'account_created' });
+          console.log('Admin activity logged successfully.');
+  
+          // Reset fields
           this.username = this.email = this.password = this.language_preferences = '';
         } catch (err) {
           this.error = err.response?.data?.error || 'Registration failed.';
@@ -63,6 +70,7 @@
     },
   };
   </script>
+  
   
   <style scoped>
   .register-container {
