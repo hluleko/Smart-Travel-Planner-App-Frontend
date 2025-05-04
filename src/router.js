@@ -21,6 +21,11 @@ const routes = [
     path: '/trips', 
     component: () => import('./views/TripsPage.vue'),
   },
+  { 
+    path: '/alerts', 
+    component: () => import('./views/AlertsPage.vue'),
+  },
+
   // Wildcard route to redirect to '/' if path does not exist
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ];

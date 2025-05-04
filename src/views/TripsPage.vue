@@ -78,7 +78,7 @@
                 <span class="material-symbols-outlined">directions_car</span>
                 Start Trip
               </button>
-              <button @click="deleteTripById(trip.trip_id)" class="delete-btn">
+              <button @click="deleteTripById(trip.trip_id, trip)" class="delete-btn">
                 <span class="material-symbols-outlined">delete</span>
                 Delete
               </button>
@@ -98,6 +98,7 @@
     deleteTrip,
     getDestinationById,
     getBudgetByTripId,
+    createAlert,
   } from "@/api/BackendApi";
   import { mapState } from "vuex";
   
@@ -164,12 +165,21 @@
           this.isLoading = false;
         }
       },
-      async deleteTripById(tripId) {
+      async deleteTripById(tripId, trip) {
         if (!confirm("Are you sure you want to delete this trip?")) return;
   
         try {
           await deleteTrip(this.authToken, tripId);
           this.trips = this.trips.filter((trip) => trip.trip_id !== tripId);
+            //Create alert
+            await createAlert(this.token, {
+                user_id: this.userId,
+                type: 'error',
+                message: `You deleted a trip to ${trip.destination?.location}.`,
+                created_at: new Date().toISOString(),
+                seen: false,
+            });
+            alert("Trip deleted successfully.");
         } catch (error) {
           console.error("Failed to delete trip:", error.response?.data || error.message);
           alert("Error deleting trip.");
@@ -178,7 +188,7 @@
       goToCreateTrip() {
         this.$router.push("/");
       },
-      startTrip(trip) {
+      async startTrip(trip) {
         const origin = encodeURIComponent(trip.starting_point || "Current+Location");
         const destination = encodeURIComponent(trip.destination?.location || "");
         if (!destination) {
@@ -186,6 +196,16 @@
           return;
         }
         const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+        
+        //Create alert
+        await createAlert(this.token, {
+            user_id: this.userId,
+            type: 'info',
+            message: `You started a trip to ${trip.destination?.location}.`,
+            created_at: new Date().toISOString(),
+            seen: false,
+          });
+
         window.open(url, "_blank");
       },
     },

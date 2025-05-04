@@ -35,7 +35,7 @@ import TripForm from "./TripForm.vue";
 import PlaceList from "./PlaceList.vue";
 import { googleMapsApiKey } from "@/config";
 import { mapState } from "vuex";
-import { createTrip, addDestination, addBudget } from "@/api/BackendApi";
+import { createTrip, addDestination, addBudget, createAlert } from "@/api/BackendApi";
 
 export default {
   name: "TripPlanner",
@@ -264,6 +264,15 @@ export default {
         console.log("Budget added successfully");
 
         this.tripCreatedMessage = "Trip created successfully!";
+
+        //Create alert
+           await createAlert(this.token, {
+            user_id: this.userId,
+            type: 'info',
+            message: `You created a trip to ${place.name}.`,
+            created_at: new Date().toISOString(),
+            seen: false,
+          });
 
         this.$router.push("/trips"); // Redirect to trips page after creation
 

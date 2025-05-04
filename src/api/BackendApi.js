@@ -88,4 +88,32 @@ export const getAdminStats = (token) =>
   // No token needed for logging activity 
   export const logAdminActivity = (activityData) =>
     axios.post(`${API_URL}/admin/activity`, activityData);
+
+
+  
+// ===== Alerts =====
+export const createAlert = (token, alertData) =>
+    axios.post(`${API_URL}/alerts`, alertData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const getUserAlerts = (token, userId) =>
+    axios.get(`${API_URL}/alerts/user/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const markAlertAsSeen = (token, alertId) =>
+    axios.patch(`${API_URL}/alerts/seen/${alertId}`, null, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const deleteAlert = (token, alertId) =>
+    axios.delete(`${API_URL}/alerts/${alertId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const getUnseenAlertCount = (token, userId) =>
+    axios.get(`${API_URL}/alerts/user/${userId}/unseen-count`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
   

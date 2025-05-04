@@ -13,6 +13,7 @@
       <button @click="handleLogout" class="logout">Logout</button>
       <button @click="confirmDelete" class="delete">Delete Account</button>
       <button @click="$router.push('/trips')">My Trips</button>
+      <button @click="$router.push('/alerts')">My Alerts</button>
     </div>
 
     <!-- Update Modal -->
@@ -43,7 +44,7 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-import { updateUserProfile, deleteUserProfile, logAdminActivity } from "@/api/BackendApi";
+import { updateUserProfile, deleteUserProfile, logAdminActivity, createAlert } from "@/api/BackendApi";
 
 export default {
   name: "ProfilePage",
@@ -75,28 +76,34 @@ export default {
     },
 
     async updateProfile() {
-      this.loading = true;
-      try {
-        const updatedData = {
-          username: this.form.username,
-          email: this.form.email,
-          language_preferences: this.form.language_preferences,
-        };
+        this.loading = true;
+        try {
+          const updatedData = {
+            username: this.form.username,
+            email: this.form.email,
+            language_preferences: this.form.language_preferences,
+          };
 
-        console.log("Updating profile with data:", updatedData);
-        console.log("Updating profile with token:", this.token);
-        console.log("Updating profile with ID:", this.user.user_id);
+          await updateUserProfile(this.token, this.user.user_id, updatedData);
+          this.setUser({ ...this.user, ...updatedData });
 
-        await updateUserProfile(this.token, this.user.user_id, updatedData);
-        this.setUser({ ...this.user, ...updatedData });
-        this.closeModal();
-      } catch (err) {
-        console.error("Error updating profile:", err);
-        alert("Failed to update profile.");
-      } finally {
-        this.loading = false;
-      }
-    },
+          //Create alert
+          await createAlert(this.token, {
+            user_id: this.user.user_id,
+            type: 'warning',
+            message: `You updated your profile.`,
+            created_at: new Date().toISOString(),
+            seen: false,
+          });
+
+          this.closeModal();
+        } catch (err) {
+          console.error("Error updating profile:", err);
+          alert("Failed to update profile.");
+        } finally {
+          this.loading = false;
+        }
+      },
 
     handleLogout() {
       this.logout();

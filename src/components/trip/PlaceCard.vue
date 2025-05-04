@@ -82,7 +82,7 @@ export default {
       setTimeout(() => {
         this.$emit("createTrip", this.place);
         this.creatingTrip = false;
-      }, 5000); // Simulate delay
+      }, 20000); // Simulate delay
     },
   },
 };
