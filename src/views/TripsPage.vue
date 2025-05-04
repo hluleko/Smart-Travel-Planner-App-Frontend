@@ -29,9 +29,14 @@
             <p class="budget">
               Budget: R{{ trip.budget?.min_amount || "N/A" }} - R{{ trip.budget?.max_amount || "N/A" }}
             </p>
-            <button @click="deleteTripById(trip.trip_id)" class="delete-btn">
-              Delete
-            </button>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button @click="startTrip(trip)" class="start-btn">
+                Start Trip
+              </button>
+              <button @click="deleteTripById(trip.trip_id)" class="delete-btn">
+                Delete
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -124,12 +129,22 @@
       goToCreateTrip() {
         this.$router.push("/");
       },
+      startTrip(trip) {
+        const origin = encodeURIComponent(trip.starting_point || "Current+Location");
+        const destination = encodeURIComponent(trip.destination?.location || "");
+        if (!destination) {
+          alert("Destination not available.");
+          return;
+        }
+        const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
+        window.open(url, "_blank");
+      },
     },
     mounted() {
       this.fetchTrips();
     },
   };
-  </script>
+  </script>  
   
   
   <style scoped>
@@ -242,6 +257,19 @@
   .loading {
     font-size: 16px;
     color: #555;
+    }
+
+
+  .start-btn {
+    background-color: #43a047;
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    }
+   .start-btn:hover {
+    background-color: #2e7d32;
     }
 
   </style>
