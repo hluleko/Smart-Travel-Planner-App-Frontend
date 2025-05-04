@@ -46,14 +46,34 @@ export const getAllTrips = (token) =>
     axios.get(`${API_URL}/budgets`, { headers: { Authorization: `Bearer ${token}` } });
   
   export const getBudgetByTripId = (token, tripId) =>
-    axios.get(`${API_URL}/budgets/trip/${tripId}`, { headers: { Authorization: `Bearer ${token}` } });
-  
+    axios.get(`${API_URL}/budgets/${tripId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
   export const addBudget = (token, budgetData) =>
     axios.post(`${API_URL}/budgets`, budgetData, { headers: { Authorization: `Bearer ${token}` } });
   
+
   // Destinations
   export const addDestination = (token, destinationData) =>
-    axios.post(`${API_URL}/destinations`, destinationData, { headers: { Authorization: `Bearer ${token}` } });
+    axios.post(`${API_URL}/destinations`, destinationData, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const getDestinationsByUserId = (token, userId) =>
+    axios.get(`${API_URL}/destinations/user/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const getDestinationById = (token, destinationId) =>
+    axios.get(`${API_URL}/destinations/${destinationId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
+  export const deleteDestination = (token, destinationId) =>
+    axios.delete(`${API_URL}/destinations/${destinationId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  
   
   // Reviews
   export const addReview = (token, reviewData) =>

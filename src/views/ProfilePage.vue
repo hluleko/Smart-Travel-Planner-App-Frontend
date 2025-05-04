@@ -12,6 +12,7 @@
       <button @click="openUpdateModal">Update Profile</button>
       <button @click="handleLogout" class="logout">Logout</button>
       <button @click="confirmDelete" class="delete">Delete Account</button>
+      <button @click="$router.push('/trips')">My Trips</button>
     </div>
 
     <!-- Update Modal -->

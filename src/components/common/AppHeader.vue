@@ -16,6 +16,7 @@
       </ul>
     </nav>
   </header>
+  <div class="space"></div>
 </template>
 
 <script>
@@ -102,4 +103,11 @@ nav li {
   background-color: #0056b3;
   color: white;
 }
+
+.space {
+  height: 60px; /* Adjust based on header height */
+  background-color: #f8f9fa; /* Same as body background */
+}
+
+
 </style>

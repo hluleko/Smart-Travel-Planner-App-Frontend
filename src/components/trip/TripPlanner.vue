@@ -264,6 +264,9 @@ export default {
         console.log("Budget added successfully");
 
         this.tripCreatedMessage = "Trip created successfully!";
+
+        this.$router.push("/trips"); // Redirect to trips page after creation
+
         setTimeout(() => (this.tripCreatedMessage = ""), 3000);
       } catch (error) {
         console.error("Trip creation error:", error.response?.data || error.message);
