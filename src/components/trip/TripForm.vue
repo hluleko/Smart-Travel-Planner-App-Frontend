@@ -133,6 +133,8 @@ h2 {
 
 .search-button {
     background: #0071c2;
+    background: #0077B5;
+    background: #003b95;
     color: white;
     width: 100%;
     padding: 16px;
