@@ -1,4 +1,4 @@
-<!-- TripPlanner.vue -->
+//TripPlanner.vue
 <template>
   <div class="location-search">
     <TripForm
@@ -15,8 +15,12 @@
       @search="handleSearch"
     />
 
+
     <div v-if="loading" class="loading">Loading sites near you...</div>
-    <div v-if="tripCreatedMessage" class="trip-created-msg">{{ tripCreatedMessage }}</div>
+
+    <div v-if="tripCreatedMessage" class="trip-created-msg">
+      {{ tripCreatedMessage }}
+    </div>
 
     <PlaceList
       v-if="places.length"
@@ -34,8 +38,6 @@
 import TripForm from "./TripForm.vue";
 import PlaceList from "./PlaceList.vue";
 import { googleMapsApiKey } from "@/config";
-import { mapState } from "vuex";
-import { createTrip, addDestination, addBudget } from "@/api/BackendApi";
 
 export default {
   name: "TripPlanner",
@@ -59,19 +61,12 @@ export default {
     };
   },
   computed: {
-    ...mapState(["user", "token"]),
     numDays() {
       if (!this.startDate || !this.endDate) return 1;
       const start = new Date(this.startDate);
       const end = new Date(this.endDate);
       const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
       return days > 0 ? days : 1;
-    },
-    authToken() {
-      return this.token;
-    },
-    userId() {
-      return this.user?.user_id;
     },
   },
   mounted() {
@@ -110,12 +105,16 @@ export default {
 
       toAutocomplete.addListener("place_changed", () => {
         const place = toAutocomplete.getPlace();
-        if (place.geometry) this.selectedLocation = place.geometry.location;
+        if (place.geometry) {
+          this.selectedLocation = place.geometry.location;
+        }
       });
 
       fromAutocomplete.addListener("place_changed", () => {
         const place = fromAutocomplete.getPlace();
-        if (place.geometry) this.fromLocation = place.geometry.location;
+        if (place.geometry) {
+          this.fromLocation = place.geometry.location;
+        }
       });
     },
     handleSearch() {
@@ -141,11 +140,12 @@ export default {
             if (status === "OK") {
               const distanceMeters = response.rows[0].elements[0].distance.value;
               this.distance = (distanceMeters / 1000).toFixed(1);
+              resolve();
             } else {
               console.error("Distance Matrix Error:", status);
               this.distance = 0;
+              resolve();
             }
-            resolve();
           }
         );
       });
@@ -183,7 +183,7 @@ export default {
                       rating: details.rating,
                       address: details.formatted_address,
                       photo: details.photos?.[0]?.getUrl({ maxWidth: 300 }) || null,
-                      budget,
+                      budget: budget,
                     });
                   } else {
                     resolve(null);
@@ -200,7 +200,7 @@ export default {
         }
       );
     },
-    calculateBudgetForPlace() {``
+    calculateBudgetForPlace() {
       const basePerPersonPerDay = 1000;
       const travelRatePerKm = 5;
       const base = this.numPeople * this.numDays * basePerPersonPerDay;
@@ -210,67 +210,26 @@ export default {
       const maxBudget = minBudget + randomVariation + 1000;
       return `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`;
     },
-    async createTrip(place) {
-      try {
-        const token = this.authToken;
-        const userId = this.userId;
+    createTrip(place) {
+      const trip = {
+        location: place.name,
+        address: place.address,
+        rating: place.rating || "N/A",
+        photoUrl: place.photo || this.defaultImage,
+        budget: place.budget,
+        numPeople: this.numPeople,
+        numDays: this.numDays,
+        startDate: this.startDate,
+        endDate: this.endDate,
+        distance: this.distance + " km",
+      };
 
-        // Step 1: Create the destination
-        const destinationPayload = {
-          user_id: userId,
-          location: place.name,
-          address: place.address,
-          rating: place.rating || "N/A",
-          photo_url: place.photo || this.defaultImage,
-        };
-
-        console.log("Creating destination with payload:", destinationPayload);
-        const destResponse = await addDestination(token, destinationPayload);
-        const destinationId = destResponse.data.destination_id;
-        console.log("Destination created:", destinationId);
-
-        // Step 2: Create the trip with the destination_id
-        const tripPayload = {
-          title: `Trip to ${place.name}`,
-          start_date: this.startDate,
-          end_date: this.endDate,
-          description: `Trip to ${place.name} from ${this.fromQuery}`,
-          number_of_people: this.numPeople,
-          user_id: userId,
-          starting_point: this.fromQuery,
-          destination_id: destinationId, // Pass the destination_id directly
-        };
-
-        console.log("Creating trip with payload:", tripPayload);
-        const tripResponse = await createTrip(token, tripPayload);
-        const tripId = tripResponse.data.trip_id;
-        console.log("Trip created:", tripId);
-
-        // Step 3: Add budget
-        const budgetRange = place.budget
-          .replace(/R/g, "")
-          .replace(/\s/g, "")
-          .split("-")
-          .map((b) => parseInt(b.replace(/,/g, ""), 10));
-
-        const budgetPayload = {
-          trip_id: tripId,
-          min_amount: budgetRange[0],
-          max_amount: budgetRange[1],
-        };
-
-        console.log("Creating budget with payload:", budgetPayload);
-        await addBudget(token, budgetPayload);
-        console.log("Budget added successfully");
-
-        this.tripCreatedMessage = "Trip created successfully!";
-        setTimeout(() => (this.tripCreatedMessage = ""), 3000);
-      } catch (error) {
-        console.error("Trip creation error:", error.response?.data || error.message);
-        alert("Error creating trip. See console for details.");
-      }
+      console.log("Trip Created:", trip);
+      this.tripCreatedMessage = "Trip created successfully!";
+      setTimeout(() => {
+        this.tripCreatedMessage = "";
+      }, 3000);
     },
-
   },
 };
 </script>
