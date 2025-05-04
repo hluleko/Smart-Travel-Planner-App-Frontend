@@ -1,39 +1,85 @@
 <template>
     <div class="trips-page">
       <div class="trips-header">
-        <h1>My Trips</h1>
-        <button @click="goToCreateTrip" class="create-btn">Create New Trip</button>
+        <div class="header-content">
+          <h1><span class="material-symbols-outlined">flight_takeoff</span> My Trips</h1>
+          <button @click="goToCreateTrip" class="create-btn">
+            <span class="material-symbols-outlined">add</span>
+            Create New Trip
+          </button>
+        </div>
       </div>
   
-      <div v-if="isLoading" class="loading">Loading trips...</div>
+      <div v-if="isLoading" class="loading">
+        <span class="material-symbols-outlined spin">progress_activity</span>
+        Loading trips...
+      </div>
   
       <div v-else-if="trips.length === 0" class="no-trips">
-        You have no trips yet.
+        <span class="material-symbols-outlined">public_off</span>
+        <p>No trips found. Start planning your next adventure!</p>
       </div>
   
       <div v-else class="trip-list">
         <div v-for="trip in trips" :key="trip.trip_id" class="trip-card">
-          <img
-            :src="trip.destination?.photo_url || defaultImage"
-            alt="Destination"
-            class="trip-image"
-          />
+          <div class="trip-image-container">
+            <img
+              :src="trip.destination?.photo_url || defaultImage"
+              alt="Destination"
+              class="trip-image"
+            />
+            <div class="trip-badge">
+              <span class="material-symbols-outlined">group</span>
+              {{ trip.number_of_people || 1 }} travelers
+            </div>
+          </div>
+          
           <div class="trip-info">
-            <h2>{{ trip.title }}</h2>
+            <div class="trip-header">
+              <h2>{{ trip.title }}</h2>
+              <div class="trip-rating" v-if="trip.destination?.rating">
+                <span class="material-symbols-outlined">star</span>
+                {{ trip.destination.rating }}
+              </div>
+            </div>
+            
             <p class="description">{{ trip.description }}</p>
-            <p class="location">
-              Location: {{ trip.destination?.location || "Unknown" }}<br />
-              Rating: {{ trip.destination?.rating || "N/A" }}
-            </p>
-            <p class="dates">{{ trip.start_date }} - {{ trip.end_date }}</p>
-            <p class="budget">
-              Budget: R{{ trip.budget?.min_amount || "N/A" }} - R{{ trip.budget?.max_amount || "N/A" }}
-            </p>
-            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            
+            <div class="trip-details">
+              <div class="detail-item">
+                <span class="material-symbols-outlined">location_on</span>
+                <div>
+                  <p class="detail-label">Destination</p>
+                  <p class="detail-value">{{ trip.destination?.location || "Unknown" }}</p>
+                </div>
+              </div>
+              
+              <div class="detail-item">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <div>
+                  <p class="detail-label">Dates</p>
+                  <p class="detail-value">{{ trip.start_date }} – {{ trip.end_date }}</p>
+                </div>
+              </div>
+              
+              <div class="detail-item">
+                <span class="material-symbols-outlined">wallet</span>
+                <div>
+                  <p class="detail-label">Budget</p>
+                  <p class="detail-value">
+                    R{{ trip.budget?.min_amount || "N/A" }} – R{{ trip.budget?.max_amount || "N/A" }}
+                  </p>
+                </div>
+              </div>
+            </div>
+  
+            <div class="trip-actions">
               <button @click="startTrip(trip)" class="start-btn">
+                <span class="material-symbols-outlined">directions_car</span>
                 Start Trip
               </button>
               <button @click="deleteTripById(trip.trip_id)" class="delete-btn">
+                <span class="material-symbols-outlined">delete</span>
                 Delete
               </button>
             </div>
@@ -44,6 +90,9 @@
   </template>
   
   <script>
+  ///trip.title
+    ///trip.number_of_people
+
   import {
     getTripsByUserId,
     deleteTrip,
@@ -148,129 +197,245 @@
   
   
   <style scoped>
+.trips-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.trips-header {
+  background: #fff;
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h1 {
+  font-size: 2rem;
+  color: #262626;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.create-btn {
+  background: #0071c2;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 113, 194, 0.2);
+}
+
+.create-btn:hover {
+  background: #00487a;
+  transform: translateY(-1px);
+}
+
+.trip-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.trip-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
+}
+
+.trip-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+.trip-image-container {
+  position: relative;
+  height: 220px;
+}
+
+.trip-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trip-badge {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.trip-info {
+  padding: 1.5rem;
+}
+
+.trip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.trip-header h2 {
+  font-size: 1.25rem;
+  margin: 0;
+  color: #262626;
+}
+
+.trip-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #ffb700;
+  font-weight: 600;
+}
+
+.description {
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 1.25rem;
+}
+
+.trip-details {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.detail-item {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.detail-item .material-symbols-outlined {
+  color: #0071c2;
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+
+.detail-label {
+  font-size: 0.75rem;
+  color: #999;
+  margin: 0 0 0.1rem;
+  text-transform: uppercase;
+}
+
+.detail-value {
+  font-size: 0.9rem;
+  color: #444;
+  margin: 0;
+  font-weight: 500;
+}
+
+.trip-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.start-btn, .delete-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.start-btn {
+  background: #43a047;
+  color: white;
+}
+
+.start-btn:hover {
+  background: #2e7d32;
+}
+
+.delete-btn {
+  background: #fff;
+  color: #d32f2f;
+  border: 1px solid #eee;
+}
+
+.delete-btn:hover {
+  background: #ffebee;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #666;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.no-trips {
+  text-align: center;
+  padding: 4rem;
+  color: #666;
+}
+
+.no-trips .material-symbols-outlined {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #ccc;
+}
+
+@media (max-width: 768px) {
   .trips-page {
-    padding: 24px;
-    font-family: Arial, sans-serif;
+    padding: 1rem;
   }
   
-  .trips-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-  }
-  
-  .trips-header h1 {
-    font-size: 28px;
-    margin: 0;
-  }
-  
-  .create-btn {
-    background-color: #1976d2;
-    color: white;
-    padding: 10px 16px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  .create-btn:hover {
-    background-color: #125ea7;
-  }
-  
-  .no-trips {
-    color: #888;
-    font-size: 16px;
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
   }
   
   .trip-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
+    grid-template-columns: 1fr;
   }
-  
-  .trip-card {
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    overflow: hidden;
-    background-color: #fafafa;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s;
-  }
-  
-  .trip-card:hover {
-    transform: scale(1.01);
-  }
-  
-  .trip-image {
-    width: 100%;
-    height: 180px;
-    object-fit: cover;
-  }
-  
-  .trip-info {
-    padding: 16px;
-  }
-  
-  .trip-info h2 {
-    margin: 0 0 8px;
-    font-size: 20px;
-  }
-  
-  .description {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 10px;
-  }
-  
-  .location {
-    font-size: 13px;
-    color: #444;
-    margin-bottom: 8px;
-  }
-  
-  .dates {
-    font-size: 13px;
-    color: #777;
-    margin-bottom: 8px;
-  }
-  
-  .budget {
-    font-size: 13px;
-    color: #333;
-    margin-bottom: 12px;
-  }
-  
-  .delete-btn {
-    background-color: #d32f2f;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  
-  .delete-btn:hover {
-    background-color: #b71c1c;
-  }
-
-  .loading {
-    font-size: 16px;
-    color: #555;
-    }
-
-
-  .start-btn {
-    background-color: #43a047;
-    color: white;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    }
-   .start-btn:hover {
-    background-color: #2e7d32;
-    }
-
-  </style>
-  
+}
+</style>
