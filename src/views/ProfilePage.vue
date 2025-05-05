@@ -5,7 +5,6 @@
     <div class="profile-details">
       <p><strong>Email:</strong> {{ user.email }}</p>
       <p><strong>Name:</strong> {{ user.username || 'Not set' }}</p>
-      <p><strong>Language Preferences:</strong> {{ user.language_preferences || 'Not set' }}</p>
     </div>
 
     <div class="actions">
@@ -14,6 +13,7 @@
       <button @click="confirmDelete" class="delete">Delete Account</button>
       <button @click="$router.push('/trips')">My Trips</button>
       <button @click="$router.push('/alerts')">My Alerts</button>
+      <button @click="$router.push('/allergies')">My Allergies</button>
     </div>
 
     <!-- Update Modal -->
@@ -26,9 +26,6 @@
 
           <label>Email</label>
           <input v-model="form.email" type="email" required />
-
-          <label>Language Preferences</label>
-          <input v-model="form.language_preferences" type="text" />
 
           <button type="submit" :disabled="loading">
             {{ loading ? 'Updating...' : 'Save' }}
@@ -55,7 +52,6 @@ export default {
       form: {
         username: "",
         email: "",
-        language_preferences: "",
       },
     };
   },
@@ -68,7 +64,6 @@ export default {
     openUpdateModal() {
       this.form.username = this.user.username || "";
       this.form.email = this.user.email || "";
-      this.form.language_preferences = this.user.language_preferences || "";
       this.showModal = true;
     },
     closeModal() {
@@ -81,7 +76,6 @@ export default {
           const updatedData = {
             username: this.form.username,
             email: this.form.email,
-            language_preferences: this.form.language_preferences,
           };
 
           await updateUserProfile(this.token, this.user.user_id, updatedData);

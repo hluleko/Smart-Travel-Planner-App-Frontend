@@ -75,10 +75,6 @@ export const getAllTrips = (token) =>
     });
   
   
-  // Reviews
-  export const addReview = (token, reviewData) =>
-    axios.post(`${API_URL}/reviews`, reviewData, { headers: { Authorization: `Bearer ${token}` } });
-  
 // Admin
 export const getAdminStats = (token) =>
     axios.get(`${API_URL}/admin/stats`, {
@@ -116,4 +112,22 @@ export const createAlert = (token, alertData) =>
     axios.get(`${API_URL}/alerts/user/${userId}/unseen-count`, {
       headers: { Authorization: `Bearer ${token}` },
     });
+
+
+// ===== Allergies =====
+export const addAllergy = (token, allergyData) =>
+  axios.post(`${API_URL}/allergies`, allergyData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const getUserAllergies = (token, userId) =>
+  axios.get(`${API_URL}/allergies/${userId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const deleteAllergy = (token, allergyId) =>
+  axios.delete(`${API_URL}/allergies/${allergyId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
   
