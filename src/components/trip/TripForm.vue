@@ -18,9 +18,57 @@
     />
 
     <div class="date-people-inputs">
-      <input type="date" v-model="localStartDate" class="date-input"   :min="today"  />
-      <input type="date" v-model="localEndDate" class="date-input"   :min="today"  />
-      <input type="number" v-model.number="localNumPeople" min="1" class="people-input" placeholder="People" />
+      <div class="input-wrapper">
+        <div class="date-group">
+          <div class="date-pair">
+            <div class="date-input-group">
+              <label for="start-date">
+                <span class="material-symbols-outlined">calendar_today</span>
+                Start Date
+              </label>
+              <input 
+                type="date" 
+                id="start-date"
+                v-model="localStartDate" 
+                class="date-input" 
+                :min="today"
+                placeholder="Select start date"
+              />
+            </div>
+            
+            <div class="date-input-group">
+              <label for="end-date">
+                <span class="material-symbols-outlined">event_available</span>
+                End Date
+              </label>
+              <input 
+                type="date" 
+                id="end-date"
+                v-model="localEndDate" 
+                class="date-input" 
+                :min="today"
+                placeholder="Select end date"
+              />
+            </div>
+          </div>
+        </div>
+
+        <br/>
+        <div class="input-group">
+          <label for="num-people" class="num-people">
+            <span class="material-symbols-outlined">group</span>
+            Travelers
+          </label>
+          <input 
+            type="number" 
+            id="num-people"
+            v-model.number="localNumPeople" 
+            min="1" 
+            class="people-input" 
+            placeholder="Number of people"
+          />
+        </div>
+      </div>
     </div>
 
     <button @click="emitSearch" class="search-button">Search</button>
@@ -119,6 +167,10 @@ h2 {
     margin: 16px 0;
 }
 
+.input-wrapper{
+  width: 100%;
+}
+
 .date-input,
 .people-input {
     flex: 1;
@@ -183,5 +235,80 @@ h2 {
         padding: 14px;
         font-size: 1rem;
     }
+}
+
+
+
+
+
+
+
+
+
+.date-group {
+  width: 100%;
+}
+
+.date-pair {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.date-input-group {
+  position: relative;
+}
+
+.date-input-group label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.date-input {
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  color: #333;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(0.5);
+  cursor: pointer;
+}
+
+.date-input:focus {
+  border-color: #0071c2;
+  box-shadow: 0 0 0 2px rgba(0, 113, 194, 0.1);
+}
+
+@media (max-width: 768px) {
+  .date-pair {
+    grid-template-columns: 1fr;
+  }
+  
+  .input-wrapper {
+    grid-template-columns: 1fr;
+  }
+  
+  .date-input-group label {
+    font-size: 0.85rem;
+  }
+}
+
+.num-people{
+   display: flex ;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.3rem;
+  color: #666;
+  margin-bottom: 10px;
 }
 </style>

@@ -42,11 +42,7 @@
       </div>
 
       <div class="action-grid">
-        <button @click="openUpdateModal" class="action-btn primary">
-          <span class="material-symbols-outlined">edit</span>
-          Update Profile
-        </button>
-        <button @click="$router.push('/trips')" class="action-btn">
+        <button @click="$router.push('/trips')" class="action-btn primary">
           <span class="material-symbols-outlined">luggage</span>
           My Trips
         </button>
@@ -57,6 +53,10 @@
         <button @click="$router.push('/allergies')" class="action-btn">
           <span class="material-symbols-outlined">allergies</span>
           My Allergies
+        </button>
+        <button @click="openUpdateModal" class="action-btn">
+          <span class="material-symbols-outlined">edit</span>
+          Update Profile
         </button>
         <button @click="handleLogout" class="action-btn warning">
           <span class="material-symbols-outlined">logout</span>
