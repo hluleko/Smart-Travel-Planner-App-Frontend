@@ -168,6 +168,27 @@ export default {
         );
       });
     },
+    calculateDistanceToPlace(placeLocation) {
+  return new Promise((resolve) => {
+    const service = new google.maps.DistanceMatrixService();
+    service.getDistanceMatrix(
+      {
+        origins: [this.fromLocation],
+        destinations: [placeLocation],
+        travelMode: google.maps.TravelMode.DRIVING,
+      },
+      (response, status) => {
+        if (status === "OK") {
+          const distanceMeters = response.rows[0].elements[0].distance.value;
+          resolve((distanceMeters / 1000).toFixed(1)); // Return distance in km
+        } else {
+          console.error("Distance Matrix Error:", status);
+          resolve("N/A");
+        }
+      }
+    );
+  });
+},
     fetchNearbyPlaces(location) {
       this.loading = true;
       this.places = [];
@@ -186,30 +207,34 @@ export default {
             return;
           }
 
-          const placePromises = results.map((place) => {
-            return new Promise((resolve) => {
-              service.getDetails(
-                {
-                  placeId: place.place_id,
-                  fields: ["name", "formatted_address", "rating", "photos"],
-                },
-                (details, status) => {
-                  if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    const budget = this.calculateBudgetForPlace();
-                    resolve({
-                      name: details.name,
-                      rating: details.rating,
-                      address: details.formatted_address,
-                      photo: details.photos?.[0]?.getUrl({ maxWidth: 300 }) || null,
-                      budget,
-                    });
-                  } else {
-                    resolve(null);
-                  }
-                }
-              );
-            });
+          const placePromises = results.map(async (place) => {
+  return new Promise((resolve) => {
+    service.getDetails(
+      {
+        placeId: place.place_id,
+        fields: ["name", "formatted_address", "rating", "photos", "geometry"],
+      },
+      async (details, status) => {
+        if (status === google.maps.places.PlacesServiceStatus.OK) {
+          const distance = await this.calculateDistanceToPlace(details.geometry.location);
+          const budget = this.calculateBudgetForPlace(distance);
+
+          resolve({
+            name: details.name,
+            rating: details.rating,
+            address: details.formatted_address,
+            photo: details.photos?.[0]?.getUrl({ maxWidth: 300 }) || null,
+            distance,
+            budget,
           });
+        } else {
+          resolve(null);
+        }
+      }
+    );
+  });
+});
+
 
           Promise.all(placePromises).then((placesData) => {
             this.places = placesData.filter((p) => p !== null);
@@ -218,16 +243,16 @@ export default {
         }
       );
     },
-    calculateBudgetForPlace() {``
-      const basePerPersonPerDay = 1000;
-      const travelRatePerKm = 5;
-      const base = this.numPeople * this.numDays * basePerPersonPerDay;
-      const travel = this.distance * travelRatePerKm;
-      const randomVariation = Math.floor(Math.random() * 2000);
-      const minBudget = base + travel;
-      const maxBudget = minBudget + randomVariation + 1000;
-      return `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`;
-    },
+    calculateBudgetForPlace(distance) {
+  const basePerPersonPerDay = 1000;
+  const travelRatePerKm = 5;
+  const base = this.numPeople * this.numDays * basePerPersonPerDay;
+  const travel = distance * travelRatePerKm;
+  const randomVariation = Math.floor(Math.random() * 2000);
+  const minBudget = base + travel;
+  const maxBudget = minBudget + randomVariation + 1000;
+  return `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`;
+},
     async createTrip(place) {
       try {
         const token = this.authToken;
