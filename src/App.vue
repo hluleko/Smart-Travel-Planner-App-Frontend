@@ -1,39 +1,36 @@
-<!-- src/App.vue -->
 <template>
-  <main_header></main_header>
-  <br/><br/>
-  <router-view />
-  <br/><br/>
+  <div id="app">
+    <AppHeader />
+    <router-view />
+  </div>
 </template>
 
 <script>
-import main_header from './components/reusable/main_header.vue';
+import AppHeader from './components/common/AppHeader.vue';
+import './global.css';
 
-export default{
-   components:{
-       main_header
-   }
-}
-
+export default {
+  name: 'App',
+  components: {
+    AppHeader,
+  },
+  created() {
+    console.log('Here is the token right now: ', localStorage.getItem("authToken"));
+    // Only try to fetch user if there is a token
+    if (this.$store.state.token) {
+      this.$store.dispatch('fetchUser')
+        .then(user => {
+          console.log('User fetched:', user); // Log user data
+        })
+        .catch(err => {
+          console.warn('Failed to fetch user:', err); // Log any errors
+          // Handle invalid token or failed user fetch
+          this.$store.dispatch('logout'); // Optionally, log out if fetching fails
+        });
+    } else {
+      console.log('No token found. Skipping fetchUser.');
+    }
+  }
+};
 </script>
 
-<style scoped>
-
-*{
-   padding: 0px;
-   margin: 0px;
-   font-family: sans-serif;
-}
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
-}
-</style>

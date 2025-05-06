@@ -1,0 +1,174 @@
+<template>
+  <div class="trip-form">
+    <h2>Explore Nearby Sites</h2>
+
+    <input
+      type="text"
+      id="from-input"
+      class="search-input"
+      v-model="localFromQuery"
+      placeholder="From where are you travelling?"
+    />
+    <input
+      type="text"
+      id="location-input"
+      class="search-input"
+      v-model="localSearchQuery"
+      placeholder="Enter a destination city..."
+    />
+
+    <div class="date-people-inputs">
+      <input type="date" v-model="localStartDate" class="date-input" />
+      <input type="date" v-model="localEndDate" class="date-input" />
+      <input type="number" v-model.number="localNumPeople" min="1" class="people-input" placeholder="People" />
+    </div>
+
+    <button @click="emitSearch" class="search-button">Search</button>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "TripForm",
+  props: ["fromQuery", "searchQuery", "startDate", "endDate", "numPeople"],
+  emits: ["update:fromQuery", "update:searchQuery", "update:startDate", "update:endDate", "update:numPeople", "search"],
+  data() {
+    return {
+      localFromQuery: this.fromQuery,
+      localSearchQuery: this.searchQuery,
+      localStartDate: this.startDate,
+      localEndDate: this.endDate,
+      localNumPeople: this.numPeople,
+    };
+  },
+  watch: {
+    localFromQuery(val) {
+      this.$emit("update:fromQuery", val);
+    },
+    localSearchQuery(val) {
+      this.$emit("update:searchQuery", val);
+    },
+    localStartDate(val) {
+      this.$emit("update:startDate", val);
+    },
+    localEndDate(val) {
+      this.$emit("update:endDate", val);
+    },
+    localNumPeople(val) {
+      this.$emit("update:numPeople", val);
+    },
+  },
+  methods: {
+    emitSearch() {
+      this.$emit("search");
+    },
+  },
+};
+</script>
+
+<style scoped>
+.trip-form {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 32px;
+    max-width: 600px;
+    margin: 20px auto;
+}
+
+h2 {
+    color: #262626;
+    font-size: 1.8rem;
+    margin: 0 0 24px 0;
+    font-weight: 700;
+}
+
+.search-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 1rem;
+    margin-bottom: 16px;
+    transition: border-color 0.2s ease;
+    box-sizing: border-box;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #0071c2;
+    box-shadow: 0 0 0 2px rgba(0, 113, 194, 0.1);
+}
+
+.search-input::placeholder {
+    color: #999;
+}
+
+.date-people-inputs {
+    display: flex;
+    gap: 16px;
+    margin: 16px 0;
+}
+
+.date-input,
+.people-input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.people-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.date-input:focus,
+.people-input:focus {
+    outline: none;
+    border-color: #0071c2;
+    box-shadow: 0 0 0 2px rgba(0, 113, 194, 0.1);
+}
+
+.search-button {
+    background: #0071c2;
+    background: #0077B5;
+    background: #003b95;
+    color: white;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 8px;
+}
+
+.search-button:hover {
+    background: #00487a;
+}
+
+@media (max-width: 768px) {
+    .trip-form {
+        padding: 24px;
+        margin: 10px;
+    }
+
+    .date-people-inputs {
+        flex-direction: column;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .search-button {
+        padding: 14px;
+        font-size: 1rem;
+    }
+}
+</style>
