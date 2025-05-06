@@ -1,107 +1,91 @@
 <template>
-      <div class="main-page">
-      <div class="main-header">
-        <div class="header-content">
-          <h1><span class="material-symbols-outlined">person</span>My Profile</h1>
+  <div class="profile-container" v-if="user">
+    <div class="profile-header">
+      <span class="material-symbols-outlined header-icon">person</span>
+      <h2>Welcome, {{ user.username || user.email }}</h2>
+    </div>
+
+    <div class="profile-details">
+      <div class="detail-card">
+        <span class="material-symbols-outlined">mail</span>
+        <div>
+          <h3>Email Address</h3>
+          <p>{{ user.email }}</p>
         </div>
       </div>
-  
-      <div v-if="isLoading" class="loading">
-        <span class="material-symbols-outlined spin">progress_activity</span>
-        Loading profile...
-      </div>
-  
-      <div v-else-if="!user" class="no-content">
-        <span class="material-symbols-outlined">public_off</span>
-        <p>Please login</p>
-      </div>
-  
-      <div v-else class="grid-list">
-
-              <div class="profile-header">
-            <span class="material-symbols-outlined header-icon">person</span>
-            <h2>Welcome, {{ user.username || user.email }}</h2>
-          </div>
-
-          <div class="profile-details">
-            <div class="detail-card">
-              <span class="material-symbols-outlined">mail</span>
-              <div>
-                <h3>Email Address</h3>
-                <p>{{ user.email }}</p>
-              </div>
-            </div>
-            
-            <div class="detail-card">
-              <span class="material-symbols-outlined">badge</span>
-              <div>
-                <h3>Username</h3>
-                <p>{{ user.username || 'Not set' }}</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="action-grid">
-            <button @click="openUpdateModal" class="action-btn primary">
-              <span class="material-symbols-outlined">edit</span>
-              Update Profile
-            </button>
-            <button @click="$router.push('/trips')" class="action-btn">
-              <span class="material-symbols-outlined">luggage</span>
-              My Trips
-            </button>
-            <button @click="$router.push('/alerts')" class="action-btn">
-              <span class="material-symbols-outlined">notifications</span>
-              My Alerts
-            </button>
-            <button @click="$router.push('/allergies')" class="action-btn">
-              <span class="material-symbols-outlined">allergies</span>
-              My Allergies
-            </button>
-            <button @click="handleLogout" class="action-btn warning">
-              <span class="material-symbols-outlined">logout</span>
-              Logout
-            </button>
-            <button @click="confirmDelete" class="action-btn danger">
-              <span class="material-symbols-outlined">delete_forever</span>
-              Delete Account
-            </button>
-          </div>
-
-          <!-- Update Modal -->
-          <div v-if="showModal" class="modal-overlay">
-            <div class="modal">
-              <div class="modal-header">
-                <h3><span class="material-symbols-outlined">manage_accounts</span> Update Profile</h3>
-                <button @click="closeModal" class="modal-close">
-                  <span class="material-symbols-outlined">close</span>
-                </button>
-              </div>
-              <form @submit.prevent="updateProfile">
-                <div class="form-group">
-                  <label><span class="material-symbols-outlined">badge</span> Username</label>
-                  <input v-model="form.username" type="text" required />
-                </div>
-                <div class="form-group">
-                  <label><span class="material-symbols-outlined">mail</span> Email</label>
-                  <input v-model="form.email" type="email" required />
-                </div>
-                <div class="form-actions">
-                  <button type="button" @click="closeModal" class="btn secondary">
-                    Cancel
-                  </button>
-                  <button type="submit" :disabled="loading" class="btn primary">
-                    <span v-if="loading" class="material-symbols-outlined spin">progress_activity</span>
-                    {{ loading ? 'Saving...' : 'Save Changes' }}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-
+      
+      <div class="detail-card">
+        <span class="material-symbols-outlined">badge</span>
+        <div>
+          <h3>Username</h3>
+          <p>{{ user.username || 'Not set' }}</p>
+        </div>
       </div>
     </div>
 
+    <div class="action-grid">
+      <button @click="openUpdateModal" class="action-btn primary">
+        <span class="material-symbols-outlined">edit</span>
+        Update Profile
+      </button>
+      <button @click="$router.push('/trips')" class="action-btn">
+        <span class="material-symbols-outlined">luggage</span>
+        My Trips
+      </button>
+      <button @click="$router.push('/alerts')" class="action-btn">
+        <span class="material-symbols-outlined">notifications</span>
+        My Alerts
+      </button>
+      <button @click="$router.push('/allergies')" class="action-btn">
+        <span class="material-symbols-outlined">allergies</span>
+        My Allergies
+      </button>
+      <button @click="handleLogout" class="action-btn warning">
+        <span class="material-symbols-outlined">logout</span>
+        Logout
+      </button>
+      <button @click="confirmDelete" class="action-btn danger">
+        <span class="material-symbols-outlined">delete_forever</span>
+        Delete Account
+      </button>
+    </div>
+
+    <!-- Update Modal -->
+    <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h3><span class="material-symbols-outlined">manage_accounts</span> Update Profile</h3>
+          <button @click="closeModal" class="modal-close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form @submit.prevent="updateProfile">
+          <div class="form-group">
+            <label><span class="material-symbols-outlined">badge</span> Username</label>
+            <input v-model="form.username" type="text" required />
+          </div>
+          <div class="form-group">
+            <label><span class="material-symbols-outlined">mail</span> Email</label>
+            <input v-model="form.email" type="email" required />
+          </div>
+          <div class="form-actions">
+            <button type="button" @click="closeModal" class="btn secondary">
+              Cancel
+            </button>
+            <button type="submit" :disabled="loading" class="btn primary">
+              <span v-if="loading" class="material-symbols-outlined spin">progress_activity</span>
+              {{ loading ? 'Saving...' : 'Save Changes' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div v-else class="loading-state">
+    <span class="material-symbols-outlined spin">progress_activity</span>
+    Loading profile...
+  </div>
 </template>
 
 <script>
@@ -113,7 +97,6 @@ export default {
   data() {
     return {
       showModal: false,
-      isLoading: false,
       loading: false,
       form: {
         username: "",
@@ -230,7 +213,7 @@ h2 {
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem;
-  background: var(--base-200);
+  background: #f8f9fa;
   border-radius: 12px;
   transition: transform 0.2s ease;
 }
@@ -256,17 +239,6 @@ h2 {
   color: #262626;
   font-weight: 500;
 }
-
-
-.grid-list {
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  overflow: hidden;
-  padding: 20px;
-}
-
 
 .action-grid {
   display: grid;
@@ -468,10 +440,4 @@ input:focus {
     font-size: 1.5rem;
   }
 }
-
-
-button{
-  box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
-}
-
 </style>

@@ -1,9 +1,9 @@
 <template>
-    <div class="main-page">
-      <div class="main-header">
+    <div class="trips-page">
+      <div class="trips-header">
         <div class="header-content">
           <h1><span class="material-symbols-outlined">flight_takeoff</span> My Trips</h1>
-          <button @click="goToCreateTrip" class="main-btn">
+          <button @click="goToCreateTrip" class="create-btn">
             <span class="material-symbols-outlined">add</span>
             Create New Trip
           </button>
@@ -15,12 +15,12 @@
         Loading trips...
       </div>
   
-      <div v-else-if="trips.length === 0" class="no-content">
+      <div v-else-if="trips.length === 0" class="no-trips">
         <span class="material-symbols-outlined">public_off</span>
         <p>No trips found. Start planning your next adventure!</p>
       </div>
   
-      <div v-else class="grid-list">
+      <div v-else class="trip-list">
         <div v-for="trip in trips" :key="trip.trip_id" class="trip-card">
           <div class="trip-image-container">
             <img
@@ -217,8 +217,55 @@
   
   
   <style scoped>
-  
-.grid-list {
+.trips-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.trips-header {
+  padding: 1rem 0;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid #eee;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+h1 {
+  font-size: 2rem;
+  color: #262626;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.create-btn {
+  background: var(--primary);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--border-radius-main);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 113, 194, 0.2);
+}
+
+.create-btn:hover {
+  background: #00487a;
+  transform: translateY(-1px);
+}
+
+.trip-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 1.5rem;
@@ -365,4 +412,49 @@
   background: #ffebee;
 }
 
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  color: #666;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.no-trips {
+  text-align: center;
+  padding: 4rem;
+  color: #666;
+}
+
+.no-trips .material-symbols-outlined {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #ccc;
+}
+
+@media (max-width: 768px) {
+  .trips-page {
+    padding: 1rem;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .trip-list {
+    grid-template-columns: 1fr;
+  }
+}
 </style>
