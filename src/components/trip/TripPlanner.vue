@@ -15,7 +15,10 @@
       @search="handleSearch"
     />
 
-    <div v-if="loading" class="loading">Loading sites near you...</div>
+    <div v-if="loading" class="loading">
+      <span class="material-symbols-outlined spin">progress_activity</span>
+         <b>Loading sites near you...</b>
+    </div>
 
     <!-- Status Popup -->
     <Popup v-if="showPopup" :visible="showPopup" title="Creating Trip" @close="showPopup = false">

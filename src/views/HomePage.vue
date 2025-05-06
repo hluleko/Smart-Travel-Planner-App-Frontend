@@ -14,22 +14,27 @@
             <div v-else class="grid-list-2">
                             
                     <TripPlanner />
-
                     <section class="features">
                         <div class="feature">
-                            <i class="fas fa-map-marked-alt"></i>
-                            <h3>Discover Destinations</h3>
-                            <p>Find the best places to visit, tailored to your preferences.</p>
+                            <div class="feature-icon">
+                                <span class="material-symbols-outlined">map</span>
+                            </div>
+                            <h3>Discover</h3>
+                            <p>Find the best places to visit</p>
                         </div>
                         <div class="feature">
-                            <i class="fas fa-calendar-alt"></i>
-                            <h3>Plan Your Trip</h3>
-                            <p>Organize your itinerary and make the most of your journey.</p>
+                            <div class="feature-icon">
+                                <span class="material-symbols-outlined">event</span>
+                            </div>
+                            <h3>Plan</h3>
+                            <p>Organize your itinerary</p>
                         </div>
                         <div class="feature">
-                            <i class="fas fa-plane"></i>
-                            <h3>Book with Ease</h3>
-                            <p>Reserve flights, hotels, and activities all in one place.</p>
+                            <div class="feature-icon">
+                                <span class="material-symbols-outlined">local_activity</span>
+                            </div>
+                            <h3>Track</h3>
+                            <p>Reserve activities all in one place.</p>
                         </div>
                     </section>
 
@@ -138,4 +143,85 @@ export default {
     margin-top: 20px;
     text-align: center;
 }
+
+
+
+
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 in 1 row */
+    gap: 1.5rem;
+    padding: 2rem 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.feature {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 12px;
+    background: white;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 28px rgba(0, 113, 194, 0.1);
+}
+
+.feature-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.2rem;
+}
+
+.features .feature:nth-child(1) .feature-icon {
+    background: #e3f2fd; /* Blue */
+    color: #0071c2;
+}
+
+.features .feature:nth-child(2) .feature-icon {
+    background: #fce4ec; /* Pink */
+    color: palevioletred;
+}
+
+.features .feature:nth-child(3) .feature-icon {
+    background: #e8f5e9; /* Green */
+    color: green;
+}
+
+.feature-icon .material-symbols-outlined {
+    font-size: 2rem;
+}
+
+h3 {
+    color: #262626;
+    margin: 0 0 0.8rem;
+    font-size: 1.2rem;
+}
+
+p {
+    color: #666;
+    line-height: 1.5;
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+    .features {
+        grid-template-columns: 1fr;
+        padding: 1.5rem 1rem;
+    }
+
+    .feature {
+        padding: 1.2rem;
+    }
+}
+
 </style>
