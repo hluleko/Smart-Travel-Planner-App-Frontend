@@ -1,35 +1,44 @@
 <template>
-    <div class="landing-page">
-
-        <br/>       
-        <br/>
-        <br/>
-        <br/>
-
-        <TripPlanner />
-
-        <section class="features">
-            <div class="feature">
-                <i class="fas fa-map-marked-alt"></i>
-                <h3>Discover Destinations</h3>
-                <p>Find the best places to visit, tailored to your preferences.</p>
+    <div class="main-page">
+            <div class="main-header">
+                <div class="header-content">
+                <h1><span class="material-symbols-outlined">home</span> Home</h1>
+                </div>
             </div>
-            <div class="feature">
-                <i class="fas fa-calendar-alt"></i>
-                <h3>Plan Your Trip</h3>
-                <p>Organize your itinerary and make the most of your journey.</p>
+        
+            <div v-if="isLoading" class="loading">
+                <span class="material-symbols-outlined spin">progress_activity</span>
+                Loading...
             </div>
-            <div class="feature">
-                <i class="fas fa-plane"></i>
-                <h3>Book with Ease</h3>
-                <p>Reserve flights, hotels, and activities all in one place.</p>
-            </div>
-        </section>
+        
+            <div v-else class="grid-list-2">
+                            
+                    <TripPlanner />
 
-        <footer class="footer">
-            <p>&copy; 2025 Smart Travel Planner. All rights reserved.</p>
-        </footer>
+                    <section class="features">
+                        <div class="feature">
+                            <i class="fas fa-map-marked-alt"></i>
+                            <h3>Discover Destinations</h3>
+                            <p>Find the best places to visit, tailored to your preferences.</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-calendar-alt"></i>
+                            <h3>Plan Your Trip</h3>
+                            <p>Organize your itinerary and make the most of your journey.</p>
+                        </div>
+                        <div class="feature">
+                            <i class="fas fa-plane"></i>
+                            <h3>Book with Ease</h3>
+                            <p>Reserve flights, hotels, and activities all in one place.</p>
+                        </div>
+                    </section>
+
+            </div>
     </div>
+
+    <footer class="footer">
+        <p>&copy; 2025 Smart Travel Planner. All rights reserved.</p>
+    </footer>
 </template>
 
 <script>
@@ -39,6 +48,12 @@ import TripPlanner from "@/components/trip/TripPlanner.vue";
 export default {
     components: {
         TripPlanner,
+    },
+    data() {
+        return {
+            isLoading: false,
+            defaultImage: "https://via.placeholder.com/300",
+        };
     },
     name: "LandingPage",
     methods: {
@@ -119,7 +134,8 @@ export default {
 .footer {
     background-color: #333;
     color: white;
-    padding: 20px 0;
+    padding: 10px;
     margin-top: 20px;
+    text-align: center;
 }
 </style>
