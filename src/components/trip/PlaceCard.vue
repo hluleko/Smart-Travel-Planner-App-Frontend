@@ -34,27 +34,30 @@
     </div>
 
     <!-- Login Required Popup -->
-    <div v-if="showLoginPrompt" class="popup-overlay">
-      <div class="popup">
-        <p>You need to sign in to create a trip.</p>
-        <button @click="showLoginPrompt = false">Close</button>
-      </div>
-    </div>
+    <Popup v-if="showLoginPrompt" :visible="showLoginPrompt" title="Login Required" @close="showLoginPrompt = false">
+      <template #actions>
+        <div class="notification-container">
+          <div class="message-content">
+            <p>You need to sign in to create a trip.</p>
+          </div>
+        </div>
 
-    <!-- Creating Trip Popup -->
-    <div v-if="creatingTrip" class="popup-overlay">
-      <div class="popup">
-        <p>Creating trip...</p>
-      </div>
-    </div>
+        <button @click="$router.push('/login')" class="start-btn">Sign in</button>
+        
+      </template>
+    </Popup>
   </div>
 </template>
 
 <script>
 import { mapState } from "vuex";
+import Popup from "@/components/common/PopUp.vue";
 
 export default {
   name: "PlaceCard",
+  components: {
+    Popup,
+  },
   props: {
     place: Object,
     numPeople: Number,
@@ -68,7 +71,6 @@ export default {
   data() {
     return {
       showLoginPrompt: false,
-      creatingTrip: false,
     };
   },
   methods: {
@@ -78,15 +80,12 @@ export default {
         return;
       }
 
-      this.creatingTrip = true;
-      setTimeout(() => {
-        this.$emit("createTrip", this.place);
-        this.creatingTrip = false;
-      }, 20000); // Simulate delay
+      this.$emit("createTrip", this.place);
     },
   },
 };
 </script>
+
 
 <style scoped>
 .place-card {
@@ -224,4 +223,27 @@ p {
     font-size: 1rem;
   }
 }
+
+
+.start-btn {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.start-btn {
+  background: #43a047;
+  color: white;
+}
+
+
+
 </style>

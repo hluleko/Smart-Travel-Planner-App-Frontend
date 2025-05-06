@@ -16,6 +16,18 @@
     />
 
     <div v-if="loading" class="loading">Loading sites near you...</div>
+
+    <!-- Status Popup -->
+    <Popup v-if="showPopup" :visible="showPopup" title="Creating Trip" @close="showPopup = false">
+      <template #actions>
+        <div class="notification-container">
+          <div class="message-content">
+            <p>{{popupMessage}}</p>
+          </div>
+        </div>        
+      </template>
+    </Popup>
+
     <div v-if="tripCreatedMessage" class="trip-created-msg">{{ tripCreatedMessage }}</div>
 
     <PlaceList
@@ -36,10 +48,11 @@ import PlaceList from "./PlaceList.vue";
 import { googleMapsApiKey } from "@/config";
 import { mapState } from "vuex";
 import { createTrip, addDestination, addBudget, createAlert } from "@/api/BackendApi";
+import Popup from "@/components/common/PopUp.vue";
 
 export default {
   name: "TripPlanner",
-  components: { TripForm, PlaceList },
+  components: { TripForm, PlaceList , Popup},
   data() {
     return {
       searchQuery: "",
@@ -56,6 +69,8 @@ export default {
       defaultImage: "https://via.placeholder.com/150?text=No+Image",
       apiKey: googleMapsApiKey,
       tripCreatedMessage: "",
+      showPopup: false,
+      popupMessage: "",
     };
   },
   computed: {
@@ -215,7 +230,9 @@ export default {
         const token = this.authToken;
         const userId = this.userId;
 
-        // Step 1: Create the destination
+        this.showPopup = true;
+        this.popupMessage = "Creating destination...";
+
         const destinationPayload = {
           user_id: userId,
           location: place.name,
@@ -223,13 +240,11 @@ export default {
           rating: place.rating || "N/A",
           photo_url: place.photo || this.defaultImage,
         };
-
-        console.log("Creating destination with payload:", destinationPayload);
         const destResponse = await addDestination(token, destinationPayload);
         const destinationId = destResponse.data.destination_id;
-        console.log("Destination created:", destinationId);
 
-        // Step 2: Create the trip with the destination_id
+        this.popupMessage = "Now creating trip...";
+
         const tripPayload = {
           title: `Trip to ${place.name}`,
           start_date: this.startDate,
@@ -238,46 +253,43 @@ export default {
           number_of_people: this.numPeople,
           user_id: userId,
           starting_point: this.fromQuery,
-          destination_id: destinationId, // Pass the destination_id directly
+          destination_id: destinationId,
         };
-
-        console.log("Creating trip with payload:", tripPayload);
         const tripResponse = await createTrip(token, tripPayload);
         const tripId = tripResponse.data.trip_id;
-        console.log("Trip created:", tripId);
 
-        // Step 3: Add budget
+        this.popupMessage = "Now creating budget...";
+
         const budgetRange = place.budget
           .replace(/R/g, "")
           .replace(/\s/g, "")
           .split("-")
           .map((b) => parseInt(b.replace(/,/g, ""), 10));
-
         const budgetPayload = {
           trip_id: tripId,
           min_amount: budgetRange[0],
           max_amount: budgetRange[1],
         };
-
-        console.log("Creating budget with payload:", budgetPayload);
         await addBudget(token, budgetPayload);
-        console.log("Budget added successfully");
 
-        this.tripCreatedMessage = "Trip created successfully!";
+        this.popupMessage = "Almost done, please be patient...";
 
-        //Create alert
-           await createAlert(this.token, {
-            user_id: this.userId,
-            type: 'info',
-            message: `You created a trip to ${place.name}.`,
-            created_at: new Date().toISOString(),
-            seen: false,
-          });
+        await createAlert(this.token, {
+          user_id: this.userId,
+          type: "info",
+          message: `You created a trip to ${place.name}.`,
+          created_at: new Date().toISOString(),
+          seen: false,
+        });
 
-        this.$router.push("/trips"); // Redirect to trips page after creation
+        this.popupMessage = "Trip created successfully!";
+        this.$router.push("/trips");
 
-        setTimeout(() => (this.tripCreatedMessage = ""), 3000);
+        setTimeout(() => {
+          this.showPopup = false;
+        }, 2000);
       } catch (error) {
+        this.showPopup = false;
         console.error("Trip creation error:", error.response?.data || error.message);
         alert("Error creating trip. See console for details.");
       }

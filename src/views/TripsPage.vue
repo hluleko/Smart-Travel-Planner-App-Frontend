@@ -225,7 +225,6 @@
 }
 
 .trips-header {
-  background: #fff;
   padding: 1rem 0;
   margin-bottom: 2rem;
   border-bottom: 1px solid #eee;
@@ -247,11 +246,11 @@ h1 {
 }
 
 .create-btn {
-  background: #0071c2;
+  background: var(--primary);
   color: white;
   padding: 0.75rem 1.5rem;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--border-radius-main);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -384,7 +383,7 @@ h1 {
   flex: 1;
   padding: 0.75rem;
   border: none;
-  border-radius: 6px;
+  border-radius: var(--border-radius-main);
   font-weight: 600;
   cursor: pointer;
   display: flex;
@@ -395,7 +394,7 @@ h1 {
 }
 
 .start-btn {
-  background: #43a047;
+  background: var(--secondary);
   color: white;
 }
 

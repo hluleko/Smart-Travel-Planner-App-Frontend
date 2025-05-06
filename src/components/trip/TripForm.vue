@@ -91,6 +91,7 @@ h2 {
     font-size: 1rem;
     margin-bottom: 16px;
     transition: border-color 0.2s ease;
+    box-sizing: border-box;
 }
 
 .search-input:focus {
