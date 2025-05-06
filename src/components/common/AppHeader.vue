@@ -2,14 +2,15 @@
   <header class="app-header fixed-header">
     <div class="logo" @click="$router.push('/')">
       <span class="material-symbols-outlined">map</span>
-      <h1>Smart Travel Planner</h1>
+      <h1 class="app-name full-name">Smart Travel Planner</h1>
+      <h1 class="app-name short-name">STP</h1>
     </div>
     <nav>
       <ul>
         <li v-if="isLoggedIn" class="user-menu">
-           <button class="profile-btn" @click="$router.push('/alerts')">
+           <button class="alert-btn" @click="$router.push('/alerts')">
               <span class="material-symbols-outlined">notifications</span>
-              <div class="username">{{ unseenAlertCount }}</div>
+              <div class="alert-circle">{{ unseenAlertCount }}</div>
             </button>
             <button class="profile-btn" @click="$router.push('/profile')">
               <span class="material-symbols-outlined">person</span>
@@ -183,6 +184,45 @@ nav ul {
   background: rgba(255, 255, 255, 0.1);
 }
 
+.alert-btn{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #ffffff;
+}
+
+.alert-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.alert-circle{
+   height: 18px;
+   width: 18px;
+   border-radius: 50px;
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   font-size: 12px;
+   color: white;
+   background: red;
+   font-weight: 400;
+   position: absolute;
+   top: 14px;
+   margin-left: 8px;
+   border: 2px solid white;
+   padding: 1px;
+   text-align: center;
+}
+
+
+
+
 .username {
   font-weight: 500;
   color: #ffffff;
@@ -267,4 +307,25 @@ nav ul {
     font-size: 0.9rem;
   }
 }
+
+
+
+/* Default: show full name, hide short name */
+.full-name {
+  display: inline;
+}
+.short-name {
+  display: none;
+}
+
+/* On mobile: hide full name, show short name */
+@media (max-width: 768px) {
+  .full-name {
+    display: none;
+  }
+  .short-name {
+    display: inline;
+  }
+}
+
 </style>

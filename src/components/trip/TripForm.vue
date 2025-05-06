@@ -118,6 +118,8 @@ h2 {
     border-radius: 4px;
     font-size: 1rem;
     transition: border-color 0.2s ease;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .people-input::-webkit-inner-spin-button {
@@ -136,6 +138,7 @@ h2 {
     background: #0071c2;
     background: #0077B5;
     background: #003b95;
+    background: var(--secondary);
     color: white;
     width: 100%;
     padding: 16px;
@@ -150,6 +153,7 @@ h2 {
 
 .search-button:hover {
     background: #00487a;
+    background: var(--secondary-dark);
 }
 
 @media (max-width: 768px) {

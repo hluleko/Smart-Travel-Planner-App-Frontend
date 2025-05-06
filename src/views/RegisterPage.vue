@@ -1,26 +1,38 @@
 <template>
-    <div class="register-container">
-      <h2>Register</h2>
-      <form @submit.prevent="handleRegister">
-        <div class="form-group">
-          <label>Username</label>
-          <input v-model="username" type="text" required />
+   <div class="main-page">
+            <div class="main-header">
+              <div class="header-content">
+                <h1><span class="material-symbols-outlined">person_add</span>Register</h1>
+              </div>
+            </div>
+        
+            <div  class="grid-list">
+
+              <div class="register-container">
+                  <form @submit.prevent="handleRegister">
+                    <div class="form-group">
+                      <label>Username</label>
+                      <input v-model="username" type="text" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Email</label>
+                      <input v-model="email" type="email" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Password</label>
+                      <input v-model="password" type="password" required />
+                    </div>
+                    <button type="submit" :disabled="loading">
+                      {{ loading ? "Registering..." : "Register" }}
+                    </button>
+                    <p class="success" v-if="success">{{ success }}</p>
+                    <p class="error" v-if="error">{{ error }}</p>
+                  </form>
+                </div>
+
+            </div>
         </div>
-        <div class="form-group">
-          <label>Email</label>
-          <input v-model="email" type="email" required />
-        </div>
-        <div class="form-group">
-          <label>Password</label>
-          <input v-model="password" type="password" required />
-        </div>
-        <button type="submit" :disabled="loading">
-          {{ loading ? "Registering..." : "Register" }}
-        </button>
-        <p class="success" v-if="success">{{ success }}</p>
-        <p class="error" v-if="error">{{ error }}</p>
-      </form>
-    </div>
+
   </template>
   
   <script>
@@ -74,13 +86,12 @@
   
   <style scoped>
   .register-container {
-    max-width: 400px;
-    margin: 100px auto;
-    padding: 2rem;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background: white;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      text-align: left;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      padding: 20px;
   }
   
   h2 {
@@ -103,22 +114,33 @@
     padding: 0.5rem;
     border-radius: 4px;
     border: 1px solid #ccc;
+    box-sizing: border-box;
   }
   
   button {
-    width: 100%;
-    padding: 0.75rem;
-    background: #28a745;
-    border: none;
+    background: #0071c2;
+    background: #0077B5;
+    background: var(--secondary);
     color: white;
-    font-weight: bold;
+    width: 100%;
+    padding: 16px;
+    border: none;
     border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
     cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 8px;
   }
   
   button:disabled {
     background: #6c757d;
   }
+
+  .button:hover {
+    background: var(--secondary-dark);
+}
+
   
   .error {
     color: red;

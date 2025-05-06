@@ -1,21 +1,32 @@
 <template>
-  <div class="login-container">
-    <h2>Sign In</h2>
-    <form @submit.prevent="handleLogin">
-      <div class="form-group">
-        <label>Email</label>
-        <input v-model="email" type="email" required />
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input v-model="password" type="password" required />
-      </div>
-      <button :disabled="loading" type="submit">
-        {{ loading ? 'Signing In...' : 'Sign In' }}
-      </button>
-      <p class="error" v-if="error">{{ error }}</p>
-    </form>
-  </div>
+    <div class="main-page">
+            <div class="main-header">
+              <div class="header-content">
+                <h1><span class="material-symbols-outlined">login</span>Login</h1>
+              </div>
+            </div>
+        
+        
+            <div  class="grid-list">
+                <div class="login-container">
+                    <form @submit.prevent="handleLogin">
+                      <div class="form-group">
+                        <label>Email</label>
+                        <input v-model="email" type="email" required />
+                      </div>
+                      <div class="form-group">
+                        <label>Password</label>
+                        <input v-model="password" type="password" required />
+                      </div>
+                      <button :disabled="loading" type="submit">
+                        {{ loading ? 'Signing In...' : 'Sign In' }}
+                      </button>
+                      <p class="error" v-if="error">{{ error }}</p>
+                    </form>
+                  </div>
+            </div>
+        </div>
+
 </template>
 
 <script>
@@ -70,14 +81,12 @@ export default {
 
 <style scoped>
 .login-container {
-  max-width: 400px;
-  margin: 100px auto;
-  padding: 2rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   text-align: left;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  padding: 20px;
 }
 
 h2 {
@@ -100,25 +109,39 @@ input {
   padding: 0.5rem;
   border-radius: 4px;
   border: 1px solid #ccc;
+  box-sizing: border-box;
 }
 
 button {
-  width: 100%;
-  padding: 0.75rem;
-  background: #007bff;
-  border: none;
-  color: white;
-  font-weight: bold;
-  border-radius: 4px;
-  cursor: pointer;
+  background: #0071c2;
+    background: #0077B5;
+    background: #003b95;
+    background: var(--secondary);
+    color: white;
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    margin-top: 8px;
 }
 
 button:disabled {
   background: #6c757d;
 }
 
+.button:hover {
+    background: var(--secondary-dark);
+}
+
 .error {
   color: red;
   margin-top: 1rem;
 }
+
+
+
 </style>
