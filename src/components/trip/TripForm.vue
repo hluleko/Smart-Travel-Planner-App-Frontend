@@ -18,8 +18,8 @@
     />
 
     <div class="date-people-inputs">
-      <input type="date" v-model="localStartDate" class="date-input" />
-      <input type="date" v-model="localEndDate" class="date-input" />
+      <input type="date" v-model="localStartDate" class="date-input"   :min="today"  />
+      <input type="date" v-model="localEndDate" class="date-input"   :min="today"  />
       <input type="number" v-model.number="localNumPeople" min="1" class="people-input" placeholder="People" />
     </div>
 
@@ -40,6 +40,15 @@ export default {
       localEndDate: this.endDate,
       localNumPeople: this.numPeople,
     };
+  },
+  computed: {
+  today() {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      return `${yyyy}-${mm}-${dd}`;
+    },
   },
   watch: {
     localFromQuery(val) {
