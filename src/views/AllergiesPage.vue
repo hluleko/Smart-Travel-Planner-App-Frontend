@@ -1,63 +1,65 @@
 <template>
-    <div class="allergies-container">
-      <div class="allergies-header">
-        <h2><span class="material-symbols-outlined">medication</span> Your Allergies</h2>
-      </div>
-  
-      <div class="add-allergy-section">
-        <button class="add-btn" @click="showAddForm = true">
-          <span class="material-symbols-outlined">add</span>
-          Add Allergy
-        </button>
-      </div>
-  
-      <div v-if="showAddForm" class="add-allergy-form">
-        <input v-model="newAllergy.name" placeholder="Allergy Name" />
-        <select v-model="newAllergy.severity">
-          <option disabled value="">Select Severity</option>
-          <option value="Low">Low</option>
-          <option value="Moderate">Moderate</option>
-          <option value="High">High</option>
-        </select>
-        <div class="form-buttons">
-          <button @click="submitNewAllergy">Submit</button>
-          <button @click="showAddForm = false" class="cancel-btn">Cancel</button>
-        </div>
-      </div>
-  
-      <div v-if="loading" class="loading-state">
-        <span class="material-symbols-outlined spin">progress_activity</span>
-        Loading allergies...
-      </div>
-  
-      <div v-else>
-        <div v-if="allergies.length === 0" class="no-allergies">
-          <span class="material-symbols-outlined">disabled_by_default</span>
-          <p>No allergies found</p>
-        </div>
-  
-        <div v-for="allergy in allergies" :key="allergy.allergy_id" class="allergy-card">
-          <div class="allergy-icon">
-            <span class="material-symbols-outlined">sick</span>
-          </div>
-          <div class="allergy-content">
-            <div class="allergy-name">{{ allergy.name }}</div>
-            <div class="allergy-meta">
-              <span class="severity">Severity: {{ allergy.severity }}</span>
-              <span class="added">
-                <span class="material-symbols-outlined">schedule</span>
-                {{ formatDate(allergy.added_at) }}
-              </span>
+
+    <div class="main-page">
+          <div class="main-header">
+            <div class="header-content">
+              <h1><span class="material-symbols-outlined">medication</span> My Allergies</h1>
+              <button  @click="showAddForm = true" class="main-btn">
+                <span class="material-symbols-outlined">add</span>
+                  Add Allergy
+              </button>
             </div>
           </div>
-          <div class="allergy-actions">
-            <button @click="deleteAllergyRecord(allergy.allergy_id)" class="delete-btn">
-              <span class="material-symbols-outlined">delete</span>
-            </button>
+
+          <div v-if="showAddForm" class="add-allergy-form">
+            <input v-model="newAllergy.name" placeholder="Allergy Name" />
+            <select v-model="newAllergy.severity">
+              <option disabled value="">Select Severity</option>
+              <option value="Low">Low</option>
+              <option value="Moderate">Moderate</option>
+              <option value="High">High</option>
+            </select>
+            <div class="form-buttons">
+              <button @click="submitNewAllergy">Submit</button>
+              <button @click="showAddForm = false" class="cancel-btn">Cancel</button>
+            </div>
+          </div>
+      
+          <div v-if="loading" class="loading-state">
+            <span class="material-symbols-outlined spin">progress_activity</span>
+            Loading allergies...
+          </div>
+      
+          <div v-else-if="allergies.length === 0" class="no-allergies">
+            <span class="material-symbols-outlined">disabled_by_default</span>
+            <p>No allergies found</p>
+          </div>
+      
+          <div v-else class="grid-list-2">
+              <div v-for="allergy in allergies" :key="allergy.allergy_id" class="allergy-card">
+                <div class="allergy-icon">
+                  <span class="material-symbols-outlined">sick</span>
+                </div>
+                <div class="allergy-content">
+                  <div class="allergy-name">{{ allergy.name }}</div>
+                  <div class="allergy-meta">
+                    <span class="severity">Severity: {{ allergy.severity }}</span>
+                    <span class="added">
+                      <span class="material-symbols-outlined">schedule</span>
+                      {{ formatDate(allergy.added_at) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="allergy-actions">
+                  <button @click="deleteAllergyRecord(allergy.allergy_id)" class="delete-btn">
+                    <span class="material-symbols-outlined">delete</span>
+                  </button>
+                </div>
+              </div>
+
           </div>
         </div>
-      </div>
-    </div>
+
   </template>
   
   <script>
@@ -249,7 +251,7 @@
   }
   
   .add-allergy-form button:not(.cancel-btn) {
-    background-color: #4299e1;
+    background-color: var(--secondary);
     color: white;
   }
   
