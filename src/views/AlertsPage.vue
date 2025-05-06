@@ -1,7 +1,10 @@
 <template>
-    <div class="alerts-container">
-      <div class="alerts-header">
-        <h2><span class="material-symbols-outlined">notifications</span> Your Alerts</h2>
+
+<div class="main-page">
+      <div class="main-header">
+        <div class="header-content">
+          <h1><span class="material-symbols-outlined">notifications</span>My Alerts</h1>
+        </div>
       </div>
   
       <div v-if="loading" class="loading-state">
@@ -9,43 +12,47 @@
         Loading alerts...
       </div>
   
-      <div v-else>
-        <div v-if="alerts.length === 0" class="no-alerts">
+      <div v-else-if="alerts.length === 0" class="no-alerts">
           <span class="material-symbols-outlined">notifications_off</span>
           <p>No alerts to display</p>
-        </div>
+       </div>
   
-        <div v-for="alert in alerts" :key="alert.alert_id" class="alert-card" :class="alert.type">
-          <div class="alert-icon">
-            <span class="material-symbols-outlined">{{ getIcon(alert.type) }}</span>
-          </div>
-          <div class="alert-content">
-            <div class="alert-message">{{ alert.message }}</div>
-            <div class="alert-meta">
-              <span class="timestamp">
-                <span class="material-symbols-outlined">schedule</span>
-                {{ formatDate(alert.created_at) }}
-              </span>
-              <span class="status" :class="{ seen: alert.seen }">
-                {{ alert.seen ? 'Viewed' : 'New' }}
-              </span>
+      <div v-else class="grid-list-2">
+
+          <div v-for="alert in alerts" :key="alert.alert_id" class="alert-card" :class="alert.type">
+            <div class="alert-icon">
+              <span class="material-symbols-outlined">{{ getIcon(alert.type) }}</span>
+            </div>
+            <div class="alert-content">
+              <div class="alert-message">{{ alert.message }}</div>
+              <div class="alert-meta">
+                <span class="timestamp">
+                  <span class="material-symbols-outlined">schedule</span>
+                  {{ formatDate(alert.created_at) }}
+                </span>
+                <span class="status" :class="{ seen: alert.seen }">
+                  {{ alert.seen ? 'Viewed' : 'New' }}
+                </span>
+              </div>
+            </div>
+            <div class="alert-actions">
+              <button 
+                @click="markAsSeen(alert.alert_id)" 
+                :disabled="alert.seen"
+                class="seen-btn"
+              >
+                <span class="material-symbols-outlined">{{ alert.seen ? 'check_circle' : 'mark_as_unread' }}</span>
+              </button>
+              <button @click="deleteAlert(alert.alert_id)" class="delete-btn">
+                <span class="material-symbols-outlined">delete</span>
+              </button>
             </div>
           </div>
-          <div class="alert-actions">
-            <button 
-              @click="markAsSeen(alert.alert_id)" 
-              :disabled="alert.seen"
-              class="seen-btn"
-            >
-              <span class="material-symbols-outlined">{{ alert.seen ? 'check_circle' : 'mark_as_unread' }}</span>
-            </button>
-            <button @click="deleteAlert(alert.alert_id)" class="delete-btn">
-              <span class="material-symbols-outlined">delete</span>
-            </button>
-          </div>
-        </div>
+
       </div>
     </div>
+
+
   </template>
   
   <script>
