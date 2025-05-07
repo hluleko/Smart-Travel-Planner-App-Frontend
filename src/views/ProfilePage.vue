@@ -21,6 +21,40 @@
           <div class="profile-header">
         <span class="material-symbols-outlined header-icon">person</span>
         <h2>Welcome, {{ user.username || user.email }}</h2>
+
+     
+        <div v-if="user.user_role == 'admin'" class="admin-dashboard">
+        <div class="admin-header">
+            <span class="material-symbols-outlined">admin_panel_settings</span>
+            <h2>Admin</h2>
+        </div>
+        
+        <div class="admin-stats-grid">
+            <div class="stat-card success">
+                <div class="stat-content">
+                    <span class="material-symbols-outlined">group_add</span>
+                    <div class="stat-text">
+                        <h3>User Registrations</h3>
+                        <p class="stat-value">{{ adminStats?.number_of_users_registered }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card danger">
+                <div class="stat-content">
+                    <span class="material-symbols-outlined">person_remove</span>
+                    <div class="stat-text">
+                        <h3>Account Deletions</h3>
+                        <p class="stat-value">{{ adminStats?.number_of_users_deleted }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
       </div>
 
       <div class="profile-details">
@@ -39,6 +73,16 @@
             <p>{{ user.username || 'Not set' }}</p>
           </div>
         </div>
+
+        <div class="detail-card">
+          <span class="material-symbols-outlined">verified_user</span>
+          <div>
+            <h3>Role</h3>
+            <p>{{ user.user_role || 'Not set' }}</p>
+          </div>
+        </div>
+
+
       </div>
 
       <div class="action-grid">
@@ -106,7 +150,7 @@
 
 <script>
 import { mapState, mapMutations } from "vuex";
-import { updateUserProfile, deleteUserProfile, logAdminActivity, createAlert } from "@/api/BackendApi";
+import { updateUserProfile, deleteUserProfile, logAdminActivity, createAlert, getAdminStats } from "@/api/BackendApi";
 
 export default {
 name: "ProfilePage",
@@ -119,12 +163,28 @@ return {
     username: "",
     email: "",
   },
+  adminStats: {},
 };
+},
+created() {
+   this.getStats();
 },
 computed: {
 ...mapState(["user", "token"]),
 },
 methods: {
+
+  async getStats() {
+  try {
+    const response = await getAdminStats(); 
+    const stats = response.data;
+    this.adminStats = stats;
+    console.log("Registered users:", stats.number_of_users_registered);
+    console.log("Deleted users:", stats.number_of_users_deleted);
+  } catch (error) {
+    console.error("Failed to fetch user stats:", error.message);
+  }
+},
 ...mapMutations(["logout", "setUser"]),
 
 openUpdateModal() {
@@ -472,6 +532,96 @@ font-size: 1.5rem;
 
 button{
 box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px;
+}
+
+.admin-dashboard {
+    background: #f8fafc;
+    border-radius: 16px;
+    padding: 2rem;
+    margin: 2rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.admin-header h2 {
+    font-size: 1.75rem;
+    color: #1e293b;
+    margin: 0;
+}
+
+.admin-header .material-symbols-outlined {
+    font-size: 2.5rem;
+    color: #3b82f6;
+}
+
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.stat-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-card .material-symbols-outlined {
+    font-size: 2.2rem;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.stat-card.success .material-symbols-outlined {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.stat-card.danger .material-symbols-outlined {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.stat-text h3 {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+    color: #64748b;
+    font-weight: 500;
+}
+
+.stat-value {
+    margin: 0;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+@media (max-width: 768px) {
+    .admin-dashboard {
+        padding: 1.5rem;
+    }
+    
+    .admin-header h2 {
+        font-size: 1.5rem;
+    }
 }
 
 </style>
