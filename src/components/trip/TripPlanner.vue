@@ -15,6 +15,8 @@
       @search="handleSearch"
     />
 
+    
+
     <div v-if="loading" class="loading">
       <span class="material-symbols-outlined spin">progress_activity</span>
          <b>Loading sites near you...</b>

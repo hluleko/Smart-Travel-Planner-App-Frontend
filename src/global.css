@@ -202,3 +202,28 @@ width: 70%;
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
     }
+
+
+    .main-background-image {
+      background: url('./assets/bg_image_1.jpg') no-repeat center center;
+      background-size: cover;
+      min-height: 100vh;
+  }
+
+
+  .main-background-image-2 {
+    background: url('./assets/bg_image_2.jpg') no-repeat center center;
+    background-size: cover;
+    min-height: 100vh;
+}
+
+
+
+.footer {
+  background-color: #333;
+  background-color: black;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+

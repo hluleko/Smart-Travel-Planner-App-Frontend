@@ -1,4 +1,5 @@
 <template>
+  <div class="main-background-image">
    <div class="main-page">
             <div class="main-header">
               <div class="header-content">
@@ -32,6 +33,7 @@
 
             </div>
         </div>
+      </div>
 
   </template>
   

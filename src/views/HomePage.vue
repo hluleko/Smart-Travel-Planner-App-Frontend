@@ -1,4 +1,5 @@
 <template>
+    <div class="main-background-image-2">
     <div class="main-page">
             <div class="main-header">
                 <div class="header-content">
@@ -6,7 +7,7 @@
                 </div>
             </div>
         
-            <div v-if="isLoading" class="loading">
+            <div v-if="isLoading" class="loading" style="color: black;">
                 <span class="material-symbols-outlined spin">progress_activity</span>
                 Loading...
             </div>
@@ -41,9 +42,8 @@
             </div>
     </div>
 
-    <footer class="footer">
-        <p>&copy; 2025 Smart Travel Planner. All rights reserved.</p>
-    </footer>
+
+</div>
 </template>
 
 <script>
@@ -136,16 +136,6 @@ export default {
     margin-bottom: 10px;
 }
 
-.footer {
-    background-color: #333;
-    color: white;
-    padding: 10px;
-    margin-top: 20px;
-    text-align: center;
-}
-
-
-
 
 
 .features {
@@ -155,6 +145,8 @@ export default {
     padding: 2rem 1rem;
     max-width: 900px;
     margin: 0 auto;
+
+    border-radius: 12px;
 }
 
 .feature {
@@ -223,5 +215,6 @@ p {
         padding: 1.2rem;
     }
 }
+
 
 </style>

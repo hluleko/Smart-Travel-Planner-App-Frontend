@@ -2,6 +2,9 @@
   <div id="app">
     <AppHeader />
     <router-view />
+    <footer class="footer">
+        <p>&copy; 2025 Smart Travel Planner. All rights reserved.</p>
+    </footer>
   </div>
 </template>
 
