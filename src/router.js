@@ -29,6 +29,10 @@ const routes = [
     path: '/allergies', 
     component: () => import('./views/AllergiesPage.vue'),
   },
+  { 
+    path: '/export', 
+    component: () => import('./views/ExportPage.vue'),
+  },
 
   // Wildcard route to redirect to '/' if path does not exist
   { path: '/:pathMatch(.*)*', redirect: '/' }

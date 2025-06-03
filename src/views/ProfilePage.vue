@@ -98,7 +98,11 @@
           <span class="material-symbols-outlined">allergies</span>
           My Allergies
         </button>
-        <button @click="openUpdateModal" class="action-btn">
+        <button @click="$router.push('/export')" class="action-btn">
+          <span class="material-symbols-outlined">cloud_download</span>
+          Export Tables
+        </button>
+          <button @click="openUpdateModal" class="action-btn">
           <span class="material-symbols-outlined">edit</span>
           Update Profile
         </button>

@@ -59,14 +59,15 @@
             <span class="material-symbols-outlined">group</span>
             Travelers
           </label>
-          <input 
-            type="number" 
-            id="num-people"
-            v-model.number="localNumPeople" 
-            min="1" 
-            class="people-input" 
-            placeholder="Number of people"
-          />
+          <select
+              id="num-people"
+              v-model.number="localNumPeople"
+              class="people-input"
+            >
+              <option disabled value="">Select number of travelers</option>
+              <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+            </select>
+
         </div>
       </div>
     </div>
@@ -86,7 +87,7 @@ export default {
       localSearchQuery: this.searchQuery,
       localStartDate: this.startDate,
       localEndDate: this.endDate,
-      localNumPeople: this.numPeople,
+      localNumPeople: this.numPeople || '', // default to empty if not set
     };
   },
   computed: {

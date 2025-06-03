@@ -2,6 +2,7 @@
   <div id="app">
     <AppHeader />
     <router-view />
+    <BackButton/>
     <footer class="footer">
         <p>&copy; 2025 Smart Travel Planner. All rights reserved.</p>
     </footer>
@@ -11,11 +12,13 @@
 <script>
 import AppHeader from './components/common/AppHeader.vue';
 import './global.css';
+import BackButton from './components/common/BackButton.vue';
 
 export default {
   name: 'App',
   components: {
     AppHeader,
+    BackButton,
   },
   created() {
     console.log('Here is the token right now: ', localStorage.getItem("authToken"));
