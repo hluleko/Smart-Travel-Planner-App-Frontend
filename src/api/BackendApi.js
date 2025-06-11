@@ -85,7 +85,15 @@ export const getAdminStats = (token) =>
   export const logAdminActivity = (activityData) =>
     axios.post(`${API_URL}/admin/activity`, activityData);
 
+export const getAllUsers = (token) =>
+    axios.get(`${API_URL}/admin/users`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
+export const getAllTripsForAdmin = (token) =>
+    axios.get(`${API_URL}/admin/trips`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
   
 // ===== Alerts =====
 export const createAlert = (token, alertData) =>
@@ -130,4 +138,3 @@ export const deleteAllergy = (token, allergyId) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  

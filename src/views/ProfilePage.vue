@@ -98,7 +98,11 @@
           <span class="material-symbols-outlined">allergies</span>
           My Allergies
         </button>
-        <button @click="$router.push('/export')" class="action-btn">
+        <button @click="$router.push('/admin-dashboard')" class="action-btn primary" v-if="user.user_role == 'admin'">
+          <span class="material-symbols-outlined">admin_panel_settings</span>
+          Admin Dashboard
+        </button>
+        <button @click="$router.push('/export')" class="action-btn" v-if="user.user_role == 'admin'">
           <span class="material-symbols-outlined">cloud_download</span>
           Export Tables
         </button>

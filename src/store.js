@@ -1,12 +1,15 @@
 // src/store.js
 import { createStore } from "vuex";
-import { getUserProfile } from "@/api/BackendApi";
+import { getUserProfile, getAllUsers, getAllTripsForAdmin } from "@/api/BackendApi";
 
 const store = createStore({
   state: {
     token: localStorage.getItem("authToken") || null,
     userId: localStorage.getItem("userId") || null,
     user: JSON.parse(localStorage.getItem("userData")) || null,
+    adminUsers: [],
+    adminTrips: [],
+    adminDataLoading: false
   },
   mutations: {
     setToken(state, token) {
@@ -48,6 +51,15 @@ const store = createStore({
       localStorage.removeItem("userData");
       console.log("User logged out and data removed from localStorage");
     },
+    setAdminUsers(state, users) {
+      state.adminUsers = users;
+    },
+    setAdminTrips(state, trips) {
+      state.adminTrips = trips;
+    },
+    setAdminDataLoading(state, isLoading) {
+      state.adminDataLoading = isLoading;
+    }
   },
   actions: {
     async fetchUser({ commit, state }) {
@@ -64,10 +76,31 @@ const store = createStore({
         commit("logout");
       }
     },
+    async fetchAdminData({ commit, state }) {
+      if (!state.token || !state.user || state.user.user_role !== 'admin') {
+        console.warn("Not authorized for admin data");
+        return;
+      }
+      
+      commit("setAdminDataLoading", true);
+      try {
+        const [usersResponse, tripsResponse] = await Promise.all([
+          getAllUsers(state.token),
+          getAllTripsForAdmin(state.token)
+        ]);
+        commit("setAdminUsers", usersResponse.data);
+        commit("setAdminTrips", tripsResponse.data);
+      } catch (err) {
+        console.error("Failed to fetch admin data:", err);
+      } finally {
+        commit("setAdminDataLoading", false);
+      }
+    }
   },
   getters: {
     isLoggedIn: (state) => !!state.token,
     userData: (state) => state.user,
+    isAdmin: (state) => state.user && state.user.user_role === 'admin'
   },
 });
 

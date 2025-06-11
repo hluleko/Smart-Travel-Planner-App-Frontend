@@ -33,6 +33,10 @@ const routes = [
     path: '/export', 
     component: () => import('./views/ExportPage.vue'),
   },
+  { 
+    path: '/admin-dashboard', 
+    component: () => import('./views/AdminDashboard.vue'),
+  },
 
   // Wildcard route to redirect to '/' if path does not exist
   { path: '/:pathMatch(.*)*', redirect: '/' }
