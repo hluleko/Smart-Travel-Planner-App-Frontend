@@ -27,6 +27,7 @@
             :src="trip.destination?.photo_url || defaultImage"
             alt="Destination"
             class="trip-image"
+            :title="trip.destination?.location"
           />
           <div class="trip-badge">
             <span class="material-symbols-outlined">group</span>
@@ -189,24 +190,22 @@ export default {
       this.$router.push("/");
     },
     async startTrip(trip) {
-      const origin = encodeURIComponent(trip.starting_point || "Current+Location");
-      const destination = encodeURIComponent(trip.destination?.location || "");
-      if (!destination) {
-        alert("Destination not available.");
-        return;
-      }
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving`;
-      
-      //Create alert
-      await createAlert(this.token, {
+      try {
+        // Create alert for starting the trip
+        await createAlert(this.token, {
           user_id: this.userId,
           type: 'info',
           message: `You started a trip to ${trip.destination?.location}.`,
           created_at: new Date().toISOString(),
           seen: false,
         });
-
-      window.open(url, "_blank");
+        
+        // Navigate to the directions page for this trip
+        this.$router.push(`/trips/${trip.trip_id}/directions`);
+      } catch (error) {
+        console.error("Error starting trip:", error);
+        alert("Failed to start trip. Please try again.");
+      }
     },
   },
   mounted() {

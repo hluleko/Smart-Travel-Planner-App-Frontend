@@ -22,6 +22,10 @@ const routes = [
     component: () => import('./views/TripsPage.vue'),
   },
   { 
+    path: '/trips/:id/directions', 
+    component: () => import('./views/TripDirectionsPage.vue'),
+  },
+  { 
     path: '/alerts', 
     component: () => import('./views/AlertsPage.vue'),
   },
