@@ -65,7 +65,7 @@
               class="people-input"
             >
               <option disabled value="">Select number of travelers</option>
-              <option v-for="n in 10" :key="n" :value="n">{{ n }}</option>
+              <option v-for="n in 20" :key="n" :value="n">{{ n }}</option>
             </select>
 
         </div>

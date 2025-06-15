@@ -138,3 +138,26 @@ export const deleteAllergy = (token, allergyId) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+// Stops
+export const createStop = (token, stopData) => {
+  console.log("API call - Creating stop:", stopData);
+  return axios.post(`${API_URL}/stops`, stopData, { 
+    headers: { Authorization: `Bearer ${token}` } 
+  }).then(response => {
+    console.log("Stop created response:", response.data);
+    return response;
+  }).catch(error => {
+    console.error("Stop creation error:", error.response?.data || error.message);
+    throw error;
+  });
+};
+
+export const getStopsByTripId = (token, tripId) =>
+  axios.get(`${API_URL}/stops/trip/${tripId}`, { headers: { Authorization: `Bearer ${token}` } });
+
+export const updateStop = (token, stopId, stopData) =>
+  axios.put(`${API_URL}/stops/${stopId}`, stopData, { headers: { Authorization: `Bearer ${token}` } });
+
+export const deleteStop = (token, stopId) =>
+  axios.delete(`${API_URL}/stops/${stopId}`, { headers: { Authorization: `Bearer ${token}` } });
+

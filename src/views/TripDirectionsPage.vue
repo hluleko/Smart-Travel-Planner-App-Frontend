@@ -68,12 +68,29 @@
         </div>
       </div>
     </div>
+
+    <div v-if="stops.length > 0" class="trip-stops">
+      <h3 class="stops-title">
+        <span class="material-symbols-outlined">pin_drop</span>
+        Stops
+      </h3>
+      
+      <div class="stops-list">
+        <div v-for="(stop, index) in stops" :key="stop.stop_id" class="stop-item">
+          <div class="stop-marker">{{ index + 1 }}</div>
+          <div class="stop-info">
+            <h4>{{ stop.name }}</h4>
+            <p>{{ stop.address }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 // eslint-disable-next-line no-unused-vars
-import { getTrip, getDestinationById, createAlert, getTripById } from "@/api/BackendApi";
+import { getTrip, getDestinationById, createAlert, getTripById, getStopsByTripId } from "@/api/BackendApi";
 import { mapState } from "vuex";
 import { googleMapsApiKey } from "@/config";
 
@@ -93,7 +110,8 @@ export default {
       mapInitialized: false,
       googleMapsLoaded: false,
       googleMapsScriptElement: null,
-      componentMounted: false // Add this flag to track component mounting
+      componentMounted: false, // Add this flag to track component mounting
+      stops: []
     };
   },
   computed: {
@@ -128,6 +146,14 @@ export default {
             this.trip.destination_id
           );
           this.trip.destination = destinationResponse.data;
+        }
+        
+        // Also fetch stops for this trip
+        try {
+          const stopsResponse = await getStopsByTripId(this.token, this.tripId);
+          this.stops = stopsResponse.data;
+        } catch (err) {
+          console.error("Error fetching stops:", err);
         }
         
         // Try to initialize map after data is loaded
@@ -285,10 +311,18 @@ export default {
         return;
       }
       
-      // Calculate and display route
+      // Create an array of waypoints from stops
+      const waypoints = this.stops.map(stop => ({
+        location: stop.location,
+        stopover: true
+      }));
+      
+      // Calculate and display route with waypoints
       this.directionsService.route({
         origin: origin,
         destination: destination,
+        waypoints: waypoints,
+        optimizeWaypoints: false, // Keep stops in the order they were added
         travelMode: window.google.maps.TravelMode.DRIVING
       }, (response, status) => {
         // Check if component is still mounted before updating
@@ -510,6 +544,56 @@ export default {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.trip-stops {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #eee;
+}
+
+.stops-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1rem;
+  margin: 0 0 1rem;
+}
+
+.stops-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.stop-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stop-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  background: #0071c2;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.stop-info h4 {
+  margin: 0 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.stop-info p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #666;
 }
 
 @media (max-width: 768px) {

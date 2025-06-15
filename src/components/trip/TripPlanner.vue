@@ -15,7 +15,9 @@
       @search="handleSearch"
     />
 
-    
+    <div v-if="places.length && places.length > 0">
+      <StopSelector :value="stops" @input="updateStops" @stop-added="onStopAdded" />
+    </div>
 
     <div v-if="loading" class="loading">
       <span class="material-symbols-outlined spin">progress_activity</span>
@@ -52,12 +54,14 @@ import TripForm from "./TripForm.vue";
 import PlaceList from "./PlaceList.vue";
 import { googleMapsApiKey } from "@/config";
 import { mapState } from "vuex";
-import { createTrip, addDestination, addBudget, createAlert } from "@/api/BackendApi";
+import { createTrip, addDestination, addBudget, createAlert, createStop } from "@/api/BackendApi";
 import Popup from "@/components/common/PopUp.vue";
+// Add the StopSelector component import
+import StopSelector from "./StopSelector.vue";
 
 export default {
   name: "TripPlanner",
-  components: { TripForm, PlaceList , Popup},
+  components: { TripForm, PlaceList , Popup, StopSelector},
   data() {
     return {
       searchQuery: "",
@@ -76,6 +80,7 @@ export default {
       tripCreatedMessage: "",
       showPopup: false,
       popupMessage: "",
+      stops: [],
     };
   },
   computed: {
@@ -96,6 +101,15 @@ export default {
   },
   mounted() {
     this.loadGoogleMaps();
+    console.log("Component mounted, stops:", this.stops);
+  },
+  watch: {
+    stops: {
+      handler(newStops) {
+        console.log("Stops changed:", newStops.length, newStops);
+      },
+      deep: true
+    }
   },
   methods: {
     loadGoogleMaps() {
@@ -285,9 +299,45 @@ export default {
           starting_point: this.fromQuery,
           destination_id: destinationId,
         };
+        // Create the trip
         const tripResponse = await createTrip(token, tripPayload);
         const tripId = tripResponse.data.trip_id;
-
+        
+        // Add stops to the trip if any
+        this.popupMessage = "Adding stops to trip...";
+        console.log("Current stops before adding to trip:", this.stops);
+        console.log("Stops length:", this.stops ? this.stops.length : 0);
+        console.log("Stops type:", Object.prototype.toString.call(this.stops));
+        
+        // Force the stops array to be treated as a regular array
+        const stopsArray = Array.isArray(this.stops) ? [...this.stops] : [];
+        
+        if (stopsArray.length > 0) {
+          console.log("Creating stops:", stopsArray.length);
+          
+          // Process each stop with proper error handling
+          for (const stop of stopsArray) {
+            try {
+              const stopPayload = {
+                trip_id: tripId,
+                name: stop.name,
+                address: stop.address,
+                location: stop.location,
+                photo_url: stop.photo_url || null,
+                order_index: stop.order_index
+              };
+              
+              console.log("Sending stop data:", stopPayload);
+              const stopResponse = await createStop(token, stopPayload);
+              console.log("Stop created successfully:", stopResponse.data);
+            } catch (stopError) {
+              console.error("Error creating stop:", stopError.response?.data || stopError.message);
+            }
+          }
+        } else {
+          console.log("No stops to add to the trip");
+        }
+        
         this.popupMessage = "Now creating budget...";
 
         const budgetRange = place.budget
@@ -325,6 +375,17 @@ export default {
       }
     },
 
+    onStopAdded(stop) {
+      console.log("Stop added event received:", stop);
+      // Manually add the stop to our local array to ensure reactivity
+      this.stops.push({...stop}); // Create a new object to avoid reference issues
+      console.log("Updated stops array after adding:", this.stops);
+    },
+    
+    updateStops(newStops) {
+      console.log("updateStops called with:", newStops);
+      this.stops = Array.isArray(newStops) ? [...newStops] : [];
+    },
   },
 };
 </script>

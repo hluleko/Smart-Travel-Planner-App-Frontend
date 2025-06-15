@@ -74,6 +74,21 @@
             </div>
           </div>
 
+          <div v-if="trip.stops && trip.stops.length > 0" class="trip-stops">
+            <div class="stops-header">
+              <span class="material-symbols-outlined">pin_drop</span>
+              <p>{{ trip.stops.length }} stop{{ trip.stops.length > 1 ? 's' : '' }}</p>
+            </div>
+            <div class="stops-preview">
+              <span v-for="(stop, idx) in trip.stops.slice(0, 2)" :key="idx" class="stop-badge">
+                {{ stop.name }}
+              </span>
+              <span v-if="trip.stops.length > 2" class="more-stops">
+                +{{ trip.stops.length - 2 }} more
+              </span>
+            </div>
+          </div>
+
           <div class="trip-actions">
             <button @click="startTrip(trip)" class="start-btn">
               <span class="material-symbols-outlined">directions_car</span>
@@ -91,15 +106,13 @@
 </template>
 
 <script>
-///trip.title
-  ///trip.number_of_people
-
 import {
   getTripsByUserId,
   deleteTrip,
   getDestinationById,
   getBudgetByTripId,
   createAlert,
+  getStopsByTripId
 } from "@/api/BackendApi";
 import { mapState } from "vuex";
 
@@ -130,6 +143,7 @@ export default {
           response.data.map(async (trip) => {
             let destination = null;
             let budget = null;
+            let stops = [];
 
             try {
               const destinationResponse = await getDestinationById(
@@ -151,10 +165,22 @@ export default {
               console.error("Error fetching budget:", err);
             }
 
+            // Fetch stops for this trip
+            try {
+              const stopsResponse = await getStopsByTripId(
+                this.authToken,
+                trip.trip_id
+              );
+              stops = stopsResponse.data;
+            } catch (err) {
+              console.error("Error fetching stops:", err);
+            }
+
             return {
               ...trip,
               destination,
               budget,
+              stops
             };
           })
         );
@@ -323,6 +349,45 @@ font-size: 0.9rem;
 color: #444;
 margin: 0;
 font-weight: 500;
+}
+
+.trip-stops {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed #eee;
+}
+
+.stops-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.stops-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.stops-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stop-badge {
+  padding: 0.25rem 0.5rem;
+  background: #e1f5fe;
+  color: #0288d1;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.more-stops {
+  font-size: 0.8rem;
+  color: #757575;
 }
 
 .trip-actions {
