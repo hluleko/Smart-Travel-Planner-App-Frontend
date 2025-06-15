@@ -1,100 +1,136 @@
 <template>
-  <div v-if="warning" class="allergy-warning" :class="severityClass">
-    <div class="allergy-warning-header">
-      <span class="material-symbols-outlined">health_and_safety</span>
-      <h4>Allergy Alert</h4>
+  <div class="allergy-warning" :class="{ 'no-allergies': hasNoAllergies }">
+    <div v-if="hasNoAllergies" class="allergy-content safe">
+      <span class="material-symbols-outlined safe-icon">check_circle</span>
+      <p>No common allergies detected for this location.</p>
     </div>
-    <p>{{ warningMessage }}</p>
-    
-    <div v-if="userAllergyMatches.length > 0" class="personal-warning">
-      <strong>Warning: Your allergies may be affected</strong>
-      <ul>
-        <li v-for="(match, index) in userAllergyMatches" :key="index">
-          Your {{ match.userAllergy.name }} allergy ({{ match.userAllergy.severity }}) - 
-          {{ match.warningAllergen }} levels are {{ match.severity }}
-        </li>
-      </ul>
+    <div v-else class="allergy-content">
+      <span class="material-symbols-outlined warning-icon">warning</span>
+      <div>
+        <h3 class="warning-title">Allergy Alert</h3>
+        
+        <div v-if="parsedWarning" class="warning-details">
+          <p class="location">{{ parsedWarning.location }}</p>
+          
+          <ul class="allergen-list">
+            <li v-for="(allergen, index) in parsedWarning.warnings" :key="index"
+                :class="allergen.severity.toLowerCase()">
+              <span class="allergen-name">{{ allergen.allergen }}</span>
+              <span class="allergen-severity">{{ allergen.severity }} risk</span>
+              <span class="allergen-condition" v-if="allergen.condition"> - {{ allergen.condition }}</span>
+            </li>
+          </ul>
+          
+          <p class="warning-date" v-if="parsedWarning.timestamp">
+            <span class="material-symbols-outlined">schedule</span>
+            {{ formatDate(parsedWarning.timestamp) }}
+          </p>
+        </div>
+        
+        <p v-else class="fallback-warning">{{ warning }}</p>
+        
+        <div v-if="userAllergyMatches.length > 0" class="personal-warning">
+          <strong>Personal Warning:</strong> This location may affect you based on your allergy profile.
+          <ul>
+            <li v-for="(match, index) in userAllergyMatches" :key="index">
+              {{ match.userAllergy.name }}: {{ match.reason }}
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { formatAllergyWarning } from '@/utils/AllergyWarningService';
-
 export default {
-  name: 'AllergyWarning',
+  name: "AllergyWarning",
   props: {
     warning: {
-      type: Object,
-      default: null
+      type: [String, Object],
+      default: ""
     },
     userAllergyMatches: {
       type: Array,
       default: () => []
+    },
+    hasNoAllergies: {
+      type: Boolean,
+      default: false
     }
   },
   computed: {
-    warningMessage() {
-      return formatAllergyWarning(this.warning);
-    },
-    severityClass() {
-      if (!this.warning || this.warning.warnings.length === 0) return '';
+    parsedWarning() {
+      if (!this.warning) return null;
       
-      // Get the highest severity level
-      const severities = {
-        'Low': 1,
-        'Moderate': 2,
-        'High': 3,
-        'Very High': 4
-      };
-      
-      let maxSeverity = 0;
-      this.warning.warnings.forEach(warn => {
-        const severityValue = severities[warn.severity] || 0;
-        maxSeverity = Math.max(maxSeverity, severityValue);
-      });
-      
-      switch(maxSeverity) {
-        case 1: return 'low';
-        case 2: return 'moderate';
-        case 3: return 'high';
-        case 4: return 'very-high';
-        default: return '';
+      try {
+        // If it's already an object, return it directly
+        if (typeof this.warning === 'object') return this.warning;
+        
+        // Try to parse it if it's a JSON string
+        return JSON.parse(this.warning);
+      } catch (e) {
+        // If parsing fails, return null and we'll use the original string
+        return null;
+      }
+    }
+  },
+  methods: {
+    formatDate(dateString) {
+      try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString(undefined, {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        });
+      } catch (e) {
+        return dateString;
       }
     }
   }
-}
+};
 </script>
 
 <style scoped>
 .allergy-warning {
-  margin: 1rem 0;
-  padding: 1rem;
+  margin: 15px 0;
+  padding: 15px;
   border-radius: 8px;
-  border-left: 4px solid #4caf50;
-  background-color: #f1f8e9;
+  background-color: #fff3cd;
+  border: 1px solid #ffeeba;
+  color: #856404;
 }
 
-.allergy-warning-header {
+.allergy-warning.no-allergies {
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+  color: #155724;
+}
+
+.allergy-content {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.5rem;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-.allergy-warning-header h4 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
+.warning-icon, .safe-icon {
+  font-size: 24px;
+  margin-top: 2px;
 }
 
-.allergy-warning p {
-  margin: 0 0 0.5rem;
-  line-height: 1.5;
+.safe-icon {
+  color: #28a745;
+}
+
+.warning-icon {
+  color: #dc3545;
 }
 
 .personal-warning {
-  margin-top: 0.75rem;
+  margin-top: 15px;
+  font-weight: 500;
+  color: #dc3545;
   padding: 0.75rem;
   border-radius: 6px;
   background-color: rgba(255, 255, 255, 0.5);
@@ -106,7 +142,7 @@ export default {
 }
 
 .personal-warning ul {
-  margin: 0;
+  margin: 5px 0 0 0;
   padding-left: 1.5rem;
 }
 
@@ -114,40 +150,105 @@ export default {
   margin-bottom: 0.25rem;
 }
 
+.warning-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #dc3545;
+}
+
+.warning-details {
+  margin-top: 5px;
+}
+
+.location {
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.allergen-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 10px 0;
+}
+
+.allergen-list li {
+  padding: 8px 12px;
+  margin-bottom: 8px;
+  border-radius: 6px;
+  background-color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.allergen-name {
+  font-weight: 600;
+  margin-right: auto;
+}
+
+.allergen-severity {
+  font-size: 0.8rem;
+  padding: 2px 6px;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.allergen-condition {
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #666;
+  width: 100%;
+  margin-top: 3px;
+}
+
+.warning-date {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 10px;
+}
+
+.warning-date .material-symbols-outlined {
+  font-size: 16px;
+}
+
+.safe {
+  color: #155724;
+}
+
 /* Severity-based styling */
 .low {
-  border-color: #4caf50;
+  border-left: 3px solid #4caf50;
   background-color: #f1f8e9;
 }
 
 .moderate {
-  border-color: #ff9800;
+  border-left: 3px solid #ff9800;
   background-color: #fff3e0;
 }
 
 .high {
-  border-color: #f44336;
+  border-left: 3px solid #f44336;
   background-color: #ffebee;
 }
 
 .very-high {
-  border-color: #9c27b0;
+  border-left: 3px solid #9c27b0;
   background-color: #f3e5f5;
 }
 
-.low .material-symbols-outlined {
-  color: #4caf50;
-}
-
-.moderate .material-symbols-outlined {
-  color: #ff9800;
-}
-
-.high .material-symbols-outlined {
-  color: #f44336;
-}
-
-.very-high .material-symbols-outlined {
-  color: #9c27b0;
+@media (max-width: 768px) {
+  .allergen-list li {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .allergen-severity {
+    margin-top: 3px;
+  }
 }
 </style>

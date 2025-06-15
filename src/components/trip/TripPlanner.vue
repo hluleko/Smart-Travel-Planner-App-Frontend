@@ -20,9 +20,10 @@
 
     <div v-if="places.length && places.length > 0">
       <AllergyWarning 
-        v-if="allergyWarning"
+        v-if="allergyWarning !== null"
         :warning="allergyWarning"
         :userAllergyMatches="userAllergyMatches"
+        :hasNoAllergies="!allergyWarning"
       />
       <StopSelector :value="stops" @input="updateStops" @stop-added="onStopAdded" />
     </div>
@@ -170,19 +171,26 @@ export default {
     },
     
     checkLocationForAllergyWarnings(location) {
-      // Generate a random allergy warning
+      // Generate a warning or return null if no allergies found
       const warning = generateAllergyWarning(location);
-      this.allergyWarning = warning;
       
-      // If we have user allergies and a warning, check for matches
-      if (warning && this.userAllergies.length > 0) {
-        this.userAllergyMatches = checkUserAllergies(this.userAllergies, warning);
+      if (warning) {
+        this.allergyWarning = warning;
         
-        // Create an alert if there are matches
-        if (this.userAllergyMatches.length > 0 && this.userId && this.token) {
-          this.createAllergyAlert(location);
+        // If we have user allergies and a warning, check for matches
+        if (this.userAllergies.length > 0) {
+          this.userAllergyMatches = checkUserAllergies(this.userAllergies, warning);
+          
+          // Create an alert if there are matches
+          if (this.userAllergyMatches.length > 0 && this.userId && this.token) {
+            this.createAllergyAlert(location);
+          }
+        } else {
+          this.userAllergyMatches = [];
         }
       } else {
+        // Set allergyWarning to false to indicate no allergies were found
+        this.allergyWarning = false;
         this.userAllergyMatches = [];
       }
     },
