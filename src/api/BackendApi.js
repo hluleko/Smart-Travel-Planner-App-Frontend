@@ -128,6 +128,7 @@ export const addAllergy = (token, allergyData) =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+// Ensure this function is properly exported
 export const getUserAllergies = (token, userId) =>
   axios.get(`${API_URL}/allergies/${userId}`, {
     headers: { Authorization: `Bearer ${token}` },

@@ -19,6 +19,11 @@
     />
 
     <div v-if="places.length && places.length > 0">
+      <AllergyWarning 
+        v-if="allergyWarning"
+        :warning="allergyWarning"
+        :userAllergyMatches="userAllergyMatches"
+      />
       <StopSelector :value="stops" @input="updateStops" @stop-added="onStopAdded" />
     </div>
 
@@ -57,13 +62,15 @@ import TripForm from "./TripForm.vue";
 import PlaceList from "./PlaceList.vue";
 import { googleMapsApiKey } from "@/config";
 import { mapState } from "vuex";
-import { createTrip, addDestination, addBudget, createAlert, createStop } from "@/api/BackendApi";
+import { createTrip, addDestination, addBudget, createAlert, createStop, getUserAllergies } from "@/api/BackendApi";
 import Popup from "@/components/common/PopUp.vue";
 import StopSelector from "./StopSelector.vue";
+import AllergyWarning from "./AllergyWarning.vue";
+import { generateAllergyWarning, checkUserAllergies } from "@/utils/AllergyWarningService";
 
 export default {
   name: "TripPlanner",
-  components: { TripForm, PlaceList, Popup, StopSelector },
+  components: { TripForm, PlaceList, Popup, StopSelector, AllergyWarning },
   data() {
     return {
       searchQuery: "",
@@ -83,6 +90,9 @@ export default {
       showPopup: false,
       popupMessage: "",
       stops: [],
+      allergyWarning: null,
+      userAllergies: [],
+      userAllergyMatches: [],
     };
   },
   computed: {
@@ -104,6 +114,9 @@ export default {
   mounted() {
     this.loadGoogleMaps();
     console.log("Component mounted, stops:", this.stops);
+    if (this.userId) {
+      this.fetchUserAllergies();
+    }
   },
   watch: {
     stops: {
@@ -149,6 +162,45 @@ export default {
     handleToLocationSelected(location) {
       console.log("To location selected:", location);
       this.selectedLocation = location;
+      
+      // Generate allergy warning for the selected location
+      if (this.searchQuery) {
+        this.checkLocationForAllergyWarnings(this.searchQuery);
+      }
+    },
+    
+    checkLocationForAllergyWarnings(location) {
+      // Generate a random allergy warning
+      const warning = generateAllergyWarning(location);
+      this.allergyWarning = warning;
+      
+      // If we have user allergies and a warning, check for matches
+      if (warning && this.userAllergies.length > 0) {
+        this.userAllergyMatches = checkUserAllergies(this.userAllergies, warning);
+        
+        // Create an alert if there are matches
+        if (this.userAllergyMatches.length > 0 && this.userId && this.token) {
+          this.createAllergyAlert(location);
+        }
+      } else {
+        this.userAllergyMatches = [];
+      }
+    },
+    
+    async createAllergyAlert(location) {
+      try {
+        const matchText = this.userAllergyMatches.map(m => m.userAllergy.name).join(", ");
+        
+        await createAlert(this.token, {
+          user_id: this.userId,
+          type: "warning",
+          message: `Allergy Warning: ${location} may trigger your ${matchText} allergies.`,
+          created_at: new Date().toISOString(),
+          seen: false,
+        });
+      } catch (error) {
+        console.error("Failed to create allergy alert:", error);
+      }
     },
     
     handleSearch() {
@@ -156,6 +208,11 @@ export default {
       if (!this.selectedLocation || !this.fromLocation) {
         alert("Please select both a 'from' and 'to' location.");
         return;
+      }
+
+      // Check for allergy warnings when search is performed
+      if (this.searchQuery) {
+        this.checkLocationForAllergyWarnings(this.searchQuery);
       }
 
       this.calculateDistance().then(() => {
@@ -383,6 +440,17 @@ export default {
         this.showPopup = false;
         console.error("Trip creation error:", error.response?.data || error.message);
         alert("Error creating trip. See console for details.");
+      }
+    },
+    async fetchUserAllergies() {
+      try {
+        if (!this.token || !this.userId) return;
+        
+        const response = await getUserAllergies(this.token, this.userId);
+        this.userAllergies = response.data;
+        console.log("User allergies loaded:", this.userAllergies);
+      } catch (error) {
+        console.error("Failed to fetch user allergies:", error);
       }
     },
   },
