@@ -8,6 +8,7 @@
       class="search-input"
       v-model="localFromQuery"
       placeholder="From where are you travelling?"
+      ref="fromInput"
     />
     <input
       type="text"
@@ -15,6 +16,7 @@
       class="search-input"
       v-model="localSearchQuery"
       placeholder="Enter a destination city..."
+      ref="locationInput"
     />
 
     <div class="date-people-inputs">
@@ -77,10 +79,22 @@
 </template>
 
 <script>
+// The comment above tells ESLint that 'google' is a global variable,
+// but we'll also add runtime checks for better error handling
+
 export default {
   name: "TripForm",
   props: ["fromQuery", "searchQuery", "startDate", "endDate", "numPeople"],
-  emits: ["update:fromQuery", "update:searchQuery", "update:startDate", "update:endDate", "update:numPeople", "search"],
+  emits: [
+    "update:fromQuery", 
+    "update:searchQuery", 
+    "update:startDate", 
+    "update:endDate", 
+    "update:numPeople", 
+    "search",
+    "fromLocationSelected",
+    "toLocationSelected"
+  ],
   data() {
     return {
       localFromQuery: this.fromQuery,
@@ -88,6 +102,8 @@ export default {
       localStartDate: this.startDate,
       localEndDate: this.endDate,
       localNumPeople: this.numPeople || '', // default to empty if not set
+      fromAutocomplete: null,
+      toAutocomplete: null,
     };
   },
   computed: {
@@ -98,6 +114,13 @@ export default {
       const dd = String(today.getDate()).padStart(2, '0');
       return `${yyyy}-${mm}-${dd}`;
     },
+  },
+  mounted() {
+    // We'll initialize Google Places Autocomplete here if parent component hasn't already
+    if (window.google && window.google.maps && window.google.maps.places) {
+      this.initAutocomplete();
+    }
+    // Otherwise, we'll rely on TripPlanner component to initialize it
   },
   watch: {
     localFromQuery(val) {
@@ -120,6 +143,73 @@ export default {
     emitSearch() {
       this.$emit("search");
     },
+    initAutocomplete() {
+      // Only initialize if it hasn't been initialized already and if Google APIs are available
+      if (this.fromAutocomplete || this.toAutocomplete) return;
+      if (!window.google || !window.google.maps || !window.google.maps.places) {
+        console.warn('Google Maps API not loaded yet');
+        return;
+      }
+      
+      const fromInput = this.$refs.fromInput;
+      const locationInput = this.$refs.locationInput;
+      
+      if (!fromInput || !locationInput) return;
+      
+      // Initialize autocomplete for "from" input
+      this.fromAutocomplete = new window.google.maps.places.Autocomplete(fromInput, {
+        componentRestrictions: { country: "ZA" },
+        fields: ["geometry", "name", "formatted_address"],
+      });
+      
+      // Initialize autocomplete for "to/location" input
+      this.toAutocomplete = new window.google.maps.places.Autocomplete(locationInput, {
+        componentRestrictions: { country: "ZA" },
+        fields: ["geometry", "name", "formatted_address"],
+      });
+      
+      // Add listeners to update the Vue model when place is selected
+      this.fromAutocomplete.addListener("place_changed", () => {
+        const place = this.fromAutocomplete.getPlace();
+        if (place) {
+          if (place.formatted_address) {
+            this.localFromQuery = place.formatted_address;
+          } else if (place.name) {
+            this.localFromQuery = place.name;
+          }
+          
+          // Emit the selected location for parent component
+          if (place.geometry && place.geometry.location) {
+            this.$emit("fromLocationSelected", place.geometry.location);
+          }
+        }
+      });
+      
+      this.toAutocomplete.addListener("place_changed", () => {
+        const place = this.toAutocomplete.getPlace();
+        if (place) {
+          if (place.formatted_address) {
+            this.localSearchQuery = place.formatted_address;
+          } else if (place.name) {
+            this.localSearchQuery = place.name;
+          }
+          
+          // Emit the selected location for parent component
+          if (place.geometry && place.geometry.location) {
+            this.$emit("toLocationSelected", place.geometry.location);
+          }
+        }
+      });
+      
+      // Prevent form submission when pressing enter in the input fields
+      fromInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') e.preventDefault();
+      });
+      
+      locationInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') e.preventDefault();
+      });
+    }
   },
 };
 </script>

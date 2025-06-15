@@ -2,6 +2,7 @@
 <template>
   <div class="location-search">
     <TripForm
+      ref="tripForm"
       :fromQuery="fromQuery"
       :searchQuery="searchQuery"
       :startDate="startDate"
@@ -13,6 +14,8 @@
       @update:endDate="endDate = $event"
       @update:numPeople="numPeople = $event"
       @search="handleSearch"
+      @fromLocationSelected="handleFromLocationSelected"
+      @toLocationSelected="handleToLocationSelected"
     />
 
     <div v-if="places.length && places.length > 0">
@@ -56,12 +59,11 @@ import { googleMapsApiKey } from "@/config";
 import { mapState } from "vuex";
 import { createTrip, addDestination, addBudget, createAlert, createStop } from "@/api/BackendApi";
 import Popup from "@/components/common/PopUp.vue";
-// Add the StopSelector component import
 import StopSelector from "./StopSelector.vue";
 
 export default {
   name: "TripPlanner",
-  components: { TripForm, PlaceList , Popup, StopSelector},
+  components: { TripForm, PlaceList, Popup, StopSelector },
   data() {
     return {
       searchQuery: "",
@@ -118,41 +120,39 @@ export default {
         script.src = `https://maps.googleapis.com/maps/api/js?key=${this.apiKey}&libraries=places`;
         script.async = true;
         script.defer = true;
-        script.onload = this.initMap;
+        script.onload = () => {
+          this.initMap();
+          // After Google Maps is loaded, initialize autocomplete in the TripForm component
+          if (this.$refs.tripForm && typeof this.$refs.tripForm.initAutocomplete === 'function') {
+            this.$refs.tripForm.initAutocomplete();
+          }
+        };
         document.head.appendChild(script);
       } else {
         this.initMap();
+        // If Google Maps is already loaded, initialize autocomplete in the TripForm component
+        if (this.$refs.tripForm && typeof this.$refs.tripForm.initAutocomplete === 'function') {
+          this.$refs.tripForm.initAutocomplete();
+        }
       }
     },
     initMap() {
       const dummyDiv = document.createElement("div");
       this.map = new google.maps.Map(dummyDiv);
-      this.initAutocomplete();
+      // Remove the call to initAutocomplete here as it's now handled in TripForm
     },
-    initAutocomplete() {
-      const toInput = document.getElementById("location-input");
-      const fromInput = document.getElementById("from-input");
-
-      const toAutocomplete = new google.maps.places.Autocomplete(toInput, {
-        componentRestrictions: { country: "ZA" },
-        fields: ["geometry", "name"],
-      });
-      const fromAutocomplete = new google.maps.places.Autocomplete(fromInput, {
-        componentRestrictions: { country: "ZA" },
-        fields: ["geometry", "name"],
-      });
-
-      toAutocomplete.addListener("place_changed", () => {
-        const place = toAutocomplete.getPlace();
-        if (place.geometry) this.selectedLocation = place.geometry.location;
-      });
-
-      fromAutocomplete.addListener("place_changed", () => {
-        const place = fromAutocomplete.getPlace();
-        if (place.geometry) this.fromLocation = place.geometry.location;
-      });
+    handleFromLocationSelected(location) {
+      console.log("From location selected:", location);
+      this.fromLocation = location;
     },
+    
+    handleToLocationSelected(location) {
+      console.log("To location selected:", location);
+      this.selectedLocation = location;
+    },
+    
     handleSearch() {
+      console.log("Search triggered, from:", this.fromLocation, "to:", this.selectedLocation);
       if (!this.selectedLocation || !this.fromLocation) {
         alert("Please select both a 'from' and 'to' location.");
         return;
@@ -185,26 +185,26 @@ export default {
       });
     },
     calculateDistanceToPlace(placeLocation) {
-  return new Promise((resolve) => {
-    const service = new google.maps.DistanceMatrixService();
-    service.getDistanceMatrix(
-      {
-        origins: [this.fromLocation],
-        destinations: [placeLocation],
-        travelMode: google.maps.TravelMode.DRIVING,
-      },
-      (response, status) => {
-        if (status === "OK") {
-          const distanceMeters = response.rows[0].elements[0].distance.value;
-          resolve((distanceMeters / 1000).toFixed(1)); // Return distance in km
-        } else {
-          console.error("Distance Matrix Error:", status);
-          resolve("N/A");
-        }
-      }
-    );
-  });
-},
+      return new Promise((resolve) => {
+        const service = new google.maps.DistanceMatrixService();
+        service.getDistanceMatrix(
+          {
+            origins: [this.fromLocation],
+            destinations: [placeLocation],
+            travelMode: google.maps.TravelMode.DRIVING,
+          },
+          (response, status) => {
+            if (status === "OK") {
+              const distanceMeters = response.rows[0].elements[0].distance.value;
+              resolve((distanceMeters / 1000).toFixed(1)); // Return distance in km
+            } else {
+              console.error("Distance Matrix Error:", status);
+              resolve("N/A");
+            }
+          }
+        );
+      });
+    },
     fetchNearbyPlaces(location) {
       this.loading = true;
       this.places = [];
@@ -224,33 +224,32 @@ export default {
           }
 
           const placePromises = results.map(async (place) => {
-  return new Promise((resolve) => {
-    service.getDetails(
-      {
-        placeId: place.place_id,
-        fields: ["name", "formatted_address", "rating", "photos", "geometry"],
-      },
-      async (details, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          const distance = await this.calculateDistanceToPlace(details.geometry.location);
-          const budget = this.calculateBudgetForPlace(distance);
+            return new Promise((resolve) => {
+              service.getDetails(
+                {
+                  placeId: place.place_id,
+                  fields: ["name", "formatted_address", "rating", "photos", "geometry"],
+                },
+                async (details, status) => {
+                  if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    const distance = await this.calculateDistanceToPlace(details.geometry.location);
+                    const budget = this.calculateBudgetForPlace(distance);
 
-          resolve({
-            name: details.name,
-            rating: details.rating,
-            address: details.formatted_address,
-            photo: details.photos?.[0]?.getUrl({ maxWidth: 300 }) || null,
-            distance,
-            budget,
+                    resolve({
+                      name: details.name,
+                      rating: details.rating,
+                      address: details.formatted_address,
+                      photo: details.photos?.[0]?.getUrl({ maxWidth: 300 }) || null,
+                      distance,
+                      budget,
+                    });
+                  } else {
+                    resolve(null);
+                  }
+                }
+              );
+            });
           });
-        } else {
-          resolve(null);
-        }
-      }
-    );
-  });
-});
-
 
           Promise.all(placePromises).then((placesData) => {
             this.places = placesData.filter((p) => p !== null);
@@ -260,15 +259,27 @@ export default {
       );
     },
     calculateBudgetForPlace(distance) {
-  const basePerPersonPerDay = 1000;
-  const travelRatePerKm = 5;
-  const base = this.numPeople * this.numDays * basePerPersonPerDay;
-  const travel = distance * travelRatePerKm;
-  const randomVariation = Math.floor(Math.random() * 2000);
-  const minBudget = base + travel;
-  const maxBudget = minBudget + randomVariation + 1000;
-  return `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`;
-},
+      const basePerPersonPerDay = 1000;
+      const travelRatePerKm = 5;
+      const base = this.numPeople * this.numDays * basePerPersonPerDay;
+      const travel = distance * travelRatePerKm;
+      const randomVariation = Math.floor(Math.random() * 2000);
+      const minBudget = base + travel;
+      const maxBudget = minBudget + randomVariation + 1000;
+      return `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`;
+    },
+    onStopAdded(stop) {
+      console.log("Stop added event received:", stop);
+      // Manually add the stop to our local array to ensure reactivity
+      this.stops.push({...stop}); // Create a new object to avoid reference issues
+      console.log("Updated stops array after adding:", this.stops);
+    },
+    
+    updateStops(newStops) {
+      console.log("updateStops called with:", newStops);
+      this.stops = Array.isArray(newStops) ? [...newStops] : [];
+    },
+    
     async createTrip(place) {
       try {
         const token = this.authToken;
@@ -374,18 +385,7 @@ export default {
         alert("Error creating trip. See console for details.");
       }
     },
-
-    onStopAdded(stop) {
-      console.log("Stop added event received:", stop);
-      // Manually add the stop to our local array to ensure reactivity
-      this.stops.push({...stop}); // Create a new object to avoid reference issues
-      console.log("Updated stops array after adding:", this.stops);
-    },
-    
-    updateStops(newStops) {
-      console.log("updateStops called with:", newStops);
-      this.stops = Array.isArray(newStops) ? [...newStops] : [];
-    },
   },
 };
 </script>
+
