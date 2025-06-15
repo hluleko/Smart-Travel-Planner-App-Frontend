@@ -108,12 +108,30 @@ export default {
         const place = this.stopAutocomplete.getPlace();
         if (!place.geometry) return;
         
+        // Update the input field with the selected place name
+        if (place.formatted_address) {
+          this.stopQuery = place.formatted_address;
+        } else if (place.name) {
+          this.stopQuery = place.name;
+        }
+        
         this.selectedStop = {
           name: place.name,
           address: place.formatted_address,
           location: `${place.geometry.location.lat()},${place.geometry.location.lng()}`,
           photo_url: place.photos && place.photos[0] ? place.photos[0].getUrl({ maxWidth: 400 }) : null
         };
+        
+        console.log("Selected stop location:", this.stopQuery);
+        console.log("Selected stop data:", this.selectedStop);
+      });
+      
+      // Prevent form submission when pressing enter
+      stopInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          if (this.selectedStop) this.addStop();
+        }
       });
     },
     addStop() {
@@ -125,6 +143,9 @@ export default {
         
         console.log("Adding stop to list:", newStop);
         this.stops.push(newStop);
+        this.$emit('stop-added', newStop);
+        
+        // Clear the input and selected stop after adding
         this.stopQuery = '';
         this.selectedStop = null;
       }
