@@ -70,6 +70,12 @@
                 <p class="detail-value">
                   R{{ trip.budget?.min_amount || "N/A" }} – R{{ trip.budget?.max_amount || "N/A" }}
                 </p>
+                <BudgetBreakdown 
+                  v-if="trip.budget && trip.budget.breakdown" 
+                  :breakdown="parseBreakdown(trip.budget.breakdown)"
+                  :numPeople="trip.number_of_people || 1"
+                  :days="calculateDays(trip.start_date, trip.end_date)"
+                />
               </div>
             </div>
           </div>
@@ -115,9 +121,13 @@ import {
   getStopsByTripId
 } from "@/api/BackendApi";
 import { mapState } from "vuex";
+import BudgetBreakdown from "@/components/common/BudgetBreakdown.vue";
 
 export default {
   name: "TripsPage",
+  components: {
+    BudgetBreakdown
+  },
   data() {
     return {
       trips: [],
@@ -232,6 +242,22 @@ export default {
         console.error("Error starting trip:", error);
         alert("Failed to start trip. Please try again.");
       }
+    },
+    parseBreakdown(breakdownString) {
+      try {
+        return typeof breakdownString === 'string' ? JSON.parse(breakdownString) : breakdownString;
+      } catch (e) {
+        console.error("Error parsing budget breakdown:", e);
+        return null;
+      }
+    },
+    calculateDays(startDate, endDate) {
+      if (!startDate || !endDate) return 1;
+      
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
+      return days > 0 ? days : 1;
     },
   },
   mounted() {

@@ -50,7 +50,6 @@
       v-if="places.length"
       :places="places"
       :numPeople="numPeople"
-      :distance="distance"
       :defaultImage="defaultImage"
       @createTrip="createTrip"
     />
@@ -251,6 +250,12 @@ export default {
     },
     calculateDistanceToPlace(placeLocation) {
       return new Promise((resolve) => {
+        if (!this.fromLocation) {
+          console.error("From location is not set");
+          resolve("N/A");
+          return;
+        }
+
         const service = new google.maps.DistanceMatrixService();
         service.getDistanceMatrix(
           {
@@ -259,7 +264,7 @@ export default {
             travelMode: google.maps.TravelMode.DRIVING,
           },
           (response, status) => {
-            if (status === "OK") {
+            if (status === "OK" && response.rows[0].elements[0].status === "OK") {
               const distanceMeters = response.rows[0].elements[0].distance.value;
               resolve((distanceMeters / 1000).toFixed(1)); // Return distance in km
             } else {
@@ -297,7 +302,10 @@ export default {
                 },
                 async (details, status) => {
                   if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    // Calculate individual distance for this place from the from location
                     const distance = await this.calculateDistanceToPlace(details.geometry.location);
+                    
+                    // Calculate budget based on the individual distance
                     const budget = this.calculateBudgetForPlace(distance);
 
                     resolve({
@@ -305,7 +313,7 @@ export default {
                       rating: details.rating,
                       address: details.formatted_address,
                       photo: details.photos?.[0]?.getUrl({ maxWidth: 300 }) || null,
-                      distance,
+                      distance, // Store the individual distance for this place
                       budget,
                     });
                   } else {
@@ -324,25 +332,65 @@ export default {
       );
     },
     calculateBudgetForPlace(distance) {
+      // Use the unique distance for each place to calculate its budget
+      
+      // Base calculations
       const basePerPersonPerDay = 1000;
       const travelRatePerKm = 5;
-      const base = this.numPeople * this.numDays * basePerPersonPerDay;
-      const travel = distance * travelRatePerKm;
+      
+      // Convert distance to number to ensure proper calculations
+      const distanceValue = typeof distance === 'string' ? 
+                           parseFloat(distance) || 0 : 
+                           distance || 0;
+      
+      // Calculate number of people and days
+      const people = this.numPeople;
+      const days = this.numDays;
+      
+      // Calculate accommodation base cost
+      const accommodationBase = people * days * basePerPersonPerDay;
+      
+      // Calculate travel costs
+      const petrolCost = distanceValue * travelRatePerKm * 1.2;
+      
+      // Calculate food costs - based on R250 per person per meal, 3 meals per day
+      const foodCostPerDay = people * 250 * 3;
+      const totalFoodCost = foodCostPerDay * days;
+      
+      // Estimate toll gate fees - based on R40 per 100km
+      const estimatedTollFees = Math.ceil(distanceValue / 100) * 40;
+      
+      // Calculate activities cost - R350 per person per day
+      const activitiesCost = people * days * 350;
+      
+      // Add some random variation to make budgets realistic
       const randomVariation = Math.floor(Math.random() * 2000);
-      const minBudget = base + travel;
+      
+      // Calculate totals
+      const minBudget = accommodationBase + petrolCost + totalFoodCost + estimatedTollFees + activitiesCost;
       const maxBudget = minBudget + randomVariation + 1000;
-      return `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`;
-    },
-    onStopAdded(stop) {
-      console.log("Stop added event received:", stop);
-      // Manually add the stop to our local array to ensure reactivity
-      this.stops.push({...stop}); // Create a new object to avoid reference issues
-      console.log("Updated stops array after adding:", this.stops);
-    },
-    
-    updateStops(newStops) {
-      console.log("updateStops called with:", newStops);
-      this.stops = Array.isArray(newStops) ? [...newStops] : [];
+      
+      // Create budget breakdown object for detailed display
+      const budgetBreakdown = {
+        accommodation: {
+          min: Math.floor(accommodationBase),
+          max: Math.floor(accommodationBase * 1.1) // 10% variation for accommodation
+        },
+        transport: {
+          petrol: Math.floor(petrolCost),
+          tolls: estimatedTollFees
+        },
+        food: Math.floor(totalFoodCost),
+        activities: Math.floor(activitiesCost),
+        totalMin: Math.floor(minBudget),
+        totalMax: Math.floor(maxBudget)
+      };
+      
+      // Return both a simple string for backward compatibility and a detailed breakdown
+      return {
+        simple: `R${Math.floor(minBudget).toLocaleString()} - R${Math.floor(maxBudget).toLocaleString()}`,
+        breakdown: budgetBreakdown
+      };
     },
     
     async createTrip(place) {
@@ -416,16 +464,33 @@ export default {
         
         this.popupMessage = "Now creating budget...";
 
-        const budgetRange = place.budget
-          .replace(/R/g, "")
-          .replace(/\s/g, "")
-          .split("-")
-          .map((b) => parseInt(b.replace(/,/g, ""), 10));
+        // Extract the budget object
+        const budgetData = place.budget;
+        let minAmount, maxAmount, budgetBreakdown;
+        
+        // Handle both old string format and new object format
+        if (typeof budgetData === 'string') {
+          const budgetRange = budgetData
+            .replace(/R/g, "")
+            .replace(/\s/g, "")
+            .split("-")
+            .map((b) => parseInt(b.replace(/,/g, ""), 10));
+          minAmount = budgetRange[0];
+          maxAmount = budgetRange[1];
+          budgetBreakdown = null;
+        } else {
+          minAmount = budgetData.breakdown.totalMin;
+          maxAmount = budgetData.breakdown.totalMax;
+          budgetBreakdown = JSON.stringify(budgetData.breakdown);
+        }
+        
         const budgetPayload = {
           trip_id: tripId,
-          min_amount: budgetRange[0],
-          max_amount: budgetRange[1],
+          min_amount: minAmount,
+          max_amount: maxAmount,
+          breakdown: budgetBreakdown
         };
+        
         await addBudget(token, budgetPayload);
 
         this.popupMessage = "Almost done, please be patient...";

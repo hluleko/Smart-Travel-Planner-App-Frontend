@@ -43,14 +43,15 @@ export const getAllTrips = (token) =>
   
   // Budgets
   export const getBudgets = (token) =>
-    axios.get(`${API_URL}/budgets`, { headers: { Authorization: `Bearer ${token}` } });
+  axios.get(`${API_URL}/budgets`, { headers: { Authorization: `Bearer ${token}` } });
+
+export const getBudgetByTripId = (token, tripId) =>
+  axios.get(`${API_URL}/budgets/${tripId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   
-  export const getBudgetByTripId = (token, tripId) =>
-    axios.get(`${API_URL}/budgets/${tripId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-  export const addBudget = (token, budgetData) =>
-    axios.post(`${API_URL}/budgets`, budgetData, { headers: { Authorization: `Bearer ${token}` } });
+export const addBudget = (token, budgetData) =>
+  axios.post(`${API_URL}/budgets`, budgetData, { headers: { Authorization: `Bearer ${token}` } });
   
 
   // Destinations
