@@ -44,6 +44,29 @@
       </template>
     </Popup>
 
+    <!-- Add Confirmation Dialog for overlapping trips -->
+    <ConfirmationDialog
+      :visible="showOverlapConfirmation"
+      title="Trip Date Overlap Detected"
+      :message="overlapMessage"
+      confirmText="Continue Anyway"
+      cancelText="Cancel"
+      @confirm="proceedWithTripCreation"
+      @cancel="cancelTripCreation"
+    >
+      <div class="overlap-details">
+        <p>You already have trips scheduled for these dates:</p>
+        <ul class="overlap-trip-list">
+          <li v-for="trip in overlappingTrips" :key="trip.trip_id">
+            <div class="overlap-trip-title">{{ trip.title }}</div>
+            <div class="overlap-trip-dates">
+              {{ formatDate(trip.start_date) }} - {{ formatDate(trip.end_date) }}
+            </div>
+          </li>
+        </ul>
+      </div>
+    </ConfirmationDialog>
+
     <div v-if="tripCreatedMessage" class="trip-created-msg">{{ tripCreatedMessage }}</div>
 
     <PlaceList
@@ -62,15 +85,16 @@ import TripForm from "./TripForm.vue";
 import PlaceList from "./PlaceList.vue";
 import { googleMapsApiKey } from "@/config";
 import { mapState } from "vuex";
-import { createTrip, addDestination, addBudget, createAlert, createStop, getUserAllergies } from "@/api/BackendApi";
+import { createTrip, addDestination, addBudget, createAlert, createStop, getUserAllergies, getTripsByUserId } from "@/api/BackendApi";
 import Popup from "@/components/common/PopUp.vue";
 import StopSelector from "./StopSelector.vue";
 import AllergyWarning from "./AllergyWarning.vue";
 import { generateAllergyWarning, checkUserAllergies } from "@/utils/AllergyWarningService";
+import ConfirmationDialog from "@/components/common/ConfirmationDialog.vue";
 
 export default {
   name: "TripPlanner",
-  components: { TripForm, PlaceList, Popup, StopSelector, AllergyWarning },
+  components: { TripForm, PlaceList, Popup, StopSelector, AllergyWarning, ConfirmationDialog },
   data() {
     return {
       searchQuery: "",
@@ -93,6 +117,13 @@ export default {
       allergyWarning: null,
       userAllergies: [],
       userAllergyMatches: [],
+      
+      // Add new properties for trip overlap handling
+      showOverlapConfirmation: false,
+      overlappingTrips: [],
+      overlapMessage: "",
+      pendingTripCreation: null,
+      userTrips: [],
     };
   },
   computed: {
@@ -116,6 +147,8 @@ export default {
     console.log("Component mounted, stops:", this.stops);
     if (this.userId) {
       this.fetchUserAllergies();
+      // Fetch user's trips for overlap checking
+      this.fetchUserTrips();
     }
   },
   watch: {
@@ -394,13 +427,49 @@ export default {
     },
     
     async createTrip(place) {
+      // Store place for later use if we need to proceed after confirmation
+      this.pendingTripCreation = place;
+      
+      // Check for overlapping trips before proceeding
+      const overlappingTrips = this.checkForTripOverlap(this.startDate, this.endDate);
+      
+      if (overlappingTrips.length > 0) {
+        // Found overlapping trips, show confirmation dialog
+        this.overlappingTrips = overlappingTrips;
+        this.overlapMessage = `You have ${overlappingTrips.length} existing trip(s) that overlap with your selected dates (${this.formatDate(this.startDate)} - ${this.formatDate(this.endDate)}).`;
+        this.showOverlapConfirmation = true;
+      } else {
+        // No overlaps, proceed with trip creation
+        this.proceedWithTripCreation();
+      }
+    },
+    
+    cancelTripCreation() {
+      this.showOverlapConfirmation = false;
+      this.pendingTripCreation = null;
+      this.overlappingTrips = [];
+    },
+    
+    async proceedWithTripCreation() {
+      // Hide the confirmation dialog if it was shown
+      this.showOverlapConfirmation = false;
+      
+      // If there's no pending trip, something went wrong
+      if (!this.pendingTripCreation) {
+        console.error("No pending trip to create");
+        return;
+      }
+      
+      const place = this.pendingTripCreation;
+      this.pendingTripCreation = null; // Clear the reference
+      
       try {
         const token = this.authToken;
         const userId = this.userId;
 
         this.showPopup = true;
         this.popupMessage = "Creating destination...";
-
+        
         const destinationPayload = {
           user_id: userId,
           location: place.name,
@@ -423,6 +492,7 @@ export default {
           starting_point: this.fromQuery,
           destination_id: destinationId,
         };
+        
         // Create the trip
         const tripResponse = await createTrip(token, tripPayload);
         const tripId = tripResponse.data.trip_id;
@@ -526,7 +596,89 @@ export default {
         console.error("Failed to fetch user allergies:", error);
       }
     },
+    async fetchUserTrips() {
+      try {
+        if (!this.token || !this.userId) return;
+        
+        const response = await getTripsByUserId(this.token, this.userId);
+        this.userTrips = response.data;
+        console.log("User trips loaded:", this.userTrips.length);
+      } catch (error) {
+        console.error("Failed to fetch user trips:", error);
+      }
+    },
+    checkForTripOverlap(startDate, endDate) {
+      // Convert string dates to Date objects for comparison
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      
+      // Clear start/end times for proper comparison (we only care about the date)
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      
+      // Find any trips that overlap with the date range
+      const overlapping = this.userTrips.filter(trip => {
+        const tripStart = new Date(trip.start_date);
+        const tripEnd = new Date(trip.end_date);
+        
+        tripStart.setHours(0, 0, 0, 0);
+        tripEnd.setHours(23, 59, 59, 999);
+        
+        // Check for any overlap between the date ranges
+        return (
+          (start <= tripEnd && start >= tripStart) || // New start date falls within existing trip
+          (end <= tripEnd && end >= tripStart) ||     // New end date falls within existing trip
+          (start <= tripStart && end >= tripEnd)      // New trip completely encompasses existing trip
+        );
+      });
+      
+      return overlapping;
+    },
+    
+    formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleDateString(undefined, {
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric'
+      });
+    },
   },
 };
 </script>
+
+<style scoped>
+/* Add styles for the overlap details in the confirmation dialog */
+.overlap-details {
+  background-color: #f8f9fa;
+  padding: 12px;
+  border-radius: 6px;
+  margin-top: 12px;
+}
+
+.overlap-trip-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+.overlap-trip-list li {
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 4px;
+  margin-bottom: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.overlap-trip-title {
+  font-weight: 600;
+  color: #333;
+}
+
+.overlap-trip-dates {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 4px;
+}
+</style>
 
