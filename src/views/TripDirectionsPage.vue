@@ -90,7 +90,7 @@
 
 <script>
 // eslint-disable-next-line no-unused-vars
-import { getTrip, getDestinationById, createAlert, getTripById, getStopsByTripId } from "@/api/BackendApi";
+import { getTrip, getDestinationById, createAlert, getTripById, getStopsByTripId, updateTripStatus } from "@/api/BackendApi";
 import { mapState } from "vuex";
 import { googleMapsApiKey } from "@/config";
 
@@ -134,8 +134,7 @@ export default {
       this.tryInitializeMap();
     }
   },
-  methods: {
-    async fetchTripDetails() {
+  methods: {    async fetchTripDetails() {
       try {
         const tripResponse = await getTripById(this.token, this.tripId);
         this.trip = tripResponse.data;
@@ -146,6 +145,28 @@ export default {
             this.trip.destination_id
           );
           this.trip.destination = destinationResponse.data;
+          
+          // Mark trip as started if not already started
+          if (this.trip && !this.trip.trip_started) {
+            try {
+              await updateTripStatus(this.token, this.tripId, { 
+                trip_started: true,
+                destination_id: this.trip.destination_id
+              });
+              this.trip.trip_started = true;
+              
+              // Create alert for starting the trip
+              await createAlert(this.token, {
+                user_id: this.user.user_id,
+                type: 'info',
+                message: `Your trip to ${this.trip.destination?.location} has started.`,
+                created_at: new Date().toISOString(),
+                seen: false,
+              });
+            } catch (err) {
+              console.error("Failed to mark trip as started:", err);
+            }
+          }
         }
         
         // Also fetch stops for this trip

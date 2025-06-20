@@ -38,6 +38,9 @@ export const getAllTrips = (token) =>
   export const updateTrip  = (token, tripId, tripData) =>
     axios.put(`${API_URL}/trips/${tripId}`, tripData, { headers: { Authorization: `Bearer ${token}` } });
   
+  export const updateTripStatus = (token, tripId, statusData) =>
+    axios.put(`${API_URL}/trips/${tripId}`, statusData, { headers: { Authorization: `Bearer ${token}` } });
+  
   export const deleteTrip = (token, tripId) =>
     axios.delete(`${API_URL}/trips/${tripId}`, { headers: { Authorization: `Bearer ${token}` } });
   

@@ -95,12 +95,47 @@
             </div>
           </div>
 
-          <div class="trip-actions">
-            <button @click="startTrip(trip)" class="start-btn">
+          <div class="trip-status" v-if="trip.trip_started && !trip.trip_ended">
+            <div class="status-badge in-progress">
               <span class="material-symbols-outlined">directions_car</span>
-              Start Trip
-            </button>
-            <button @click="deleteTripById(trip.trip_id, trip)" class="delete-btn">
+              Trip In Progress
+            </div>
+          </div>
+          
+          <div class="trip-status" v-if="trip.trip_ended">
+            <div class="status-badge completed">
+              <span class="material-symbols-outlined">check_circle</span>
+              Trip Completed
+            </div>
+          </div>
+          
+          <div class="trip-actions">
+            <template v-if="!trip.trip_started && !trip.trip_ended">
+              <button @click="startTrip(trip)" class="start-btn">
+                <span class="material-symbols-outlined">directions_car</span>
+                Start Trip
+              </button>
+            </template>
+            
+            <template v-else-if="trip.trip_started && !trip.trip_ended">
+              <button @click="continueTrip(trip)" class="continue-btn">
+                <span class="material-symbols-outlined">map</span>
+                Continue Trip
+              </button>
+              <button @click="endTrip(trip)" class="end-btn">
+                <span class="material-symbols-outlined">flag</span>
+                End Trip
+              </button>
+            </template>
+            
+            <template v-else>
+              <button @click="viewTripSummary(trip)" class="summary-btn">
+                <span class="material-symbols-outlined">summarize</span>
+                View Summary
+              </button>
+            </template>
+            
+            <button @click="deleteTripById(trip.trip_id, trip)" class="delete-btn" v-if="!trip.trip_started">
               <span class="material-symbols-outlined">delete</span>
               Delete
             </button>
@@ -118,7 +153,8 @@ import {
   getDestinationById,
   getCostByTripId,
   createAlert,
-  getStopsByTripId
+  getStopsByTripId,
+  updateTripStatus
 } from "@/api/BackendApi";
 import { mapState } from "vuex";
 import BudgetBreakdown from "@/components/common/BudgetBreakdown.vue";
@@ -227,6 +263,12 @@ export default {
     },
     async startTrip(trip) {
       try {
+        // Update trip status to started
+        await updateTripStatus(this.token, trip.trip_id, {
+          trip_started: true,
+          destination_id: trip.destination_id
+        });
+        
         // Create alert for starting the trip
         await createAlert(this.token, {
           user_id: this.userId,
@@ -242,6 +284,44 @@ export default {
         console.error("Error starting trip:", error);
         alert("Failed to start trip. Please try again.");
       }
+    },
+    async continueTrip(trip) {
+      // Simply navigate to directions page for an in-progress trip
+      this.$router.push(`/trips/${trip.trip_id}/directions`);
+    },
+    
+    async endTrip(trip) {
+      if (!confirm("Are you sure you want to end this trip?")) return;
+      
+      try {
+        // Update trip status to ended
+        await updateTripStatus(this.token, trip.trip_id, {
+          trip_ended: true,
+          destination_id: trip.destination_id
+        });
+        
+        // Update local trip data
+        trip.trip_ended = true;
+        
+        // Create alert for ending the trip
+        await createAlert(this.token, {
+          user_id: this.userId,
+          type: 'info',
+          message: `You completed your trip to ${trip.destination?.location}.`,
+          created_at: new Date().toISOString(),
+          seen: false,
+        });
+        
+        alert("Trip marked as completed!");
+      } catch (error) {
+        console.error("Error ending trip:", error);
+        alert("Failed to end trip. Please try again.");
+      }
+    },
+    
+    viewTripSummary(trip) {
+      // For now, just show details - could expand this in future
+      this.$router.push(`/trips/${trip.trip_id}/directions`);
     },
     parseBreakdown(breakdownString) {
       try {
@@ -420,13 +500,38 @@ font-weight: 500;
   color: #757575;
 }
 
+.trip-status {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 0.4rem 0.75rem;
+  border-radius: 4px;
+}
+
+.in-progress {
+  background-color: #e3f2fd;
+  color: #0277bd;
+}
+
+.completed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
 .trip-actions {
 display: flex;
 gap: 0.75rem;
 margin-top: 1rem;
 }
 
-.start-btn, .delete-btn {
+.start-btn, .continue-btn, .end-btn, .summary-btn, .delete-btn {
 flex: 1;
 padding: 0.75rem;
 border: none;
@@ -447,6 +552,33 @@ color: white;
 
 .start-btn:hover {
 background: #2e7d32;
+}
+
+.continue-btn {
+background: #039be5;
+color: white;
+}
+
+.continue-btn:hover {
+background: #0277bd;
+}
+
+.end-btn {
+background: #f57c00;
+color: white;
+}
+
+.end-btn:hover {
+background: #ef6c00;
+}
+
+.summary-btn {
+background: #7e57c2;
+color: white;
+}
+
+.summary-btn:hover {
+background: #673ab7;
 }
 
 .delete-btn {
