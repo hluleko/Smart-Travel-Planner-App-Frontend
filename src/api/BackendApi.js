@@ -163,3 +163,19 @@ export const updateStop = (token, stopId, stopData) =>
 export const deleteStop = (token, stopId) =>
   axios.delete(`${API_URL}/stops/${stopId}`, { headers: { Authorization: `Bearer ${token}` } });
 
+// Export functions
+export const getTablePreview = (tableName) => {
+  console.log(`Getting preview for table: ${tableName} from ${API_URL}/preview/${tableName}`);
+  return axios.get(`${API_URL}/preview/${tableName}`);
+};
+
+export const exportTable = (tableName, format = 'excel') => {
+  console.log(`Exporting table: ${tableName} in format: ${format} from ${API_URL}/export/${tableName}/${format}`);
+  return axios.get(`${API_URL}/export/${tableName}/${format}`, { 
+    responseType: 'blob',
+    headers: {
+      'Accept': '*/*'
+    }
+  });
+};
+

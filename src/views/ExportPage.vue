@@ -1,5 +1,4 @@
-<template>
-  <div class="main-page">
+<template>  <div class="main-page">
     <div class="main-header">
       <div class="header-content">
         <h1><span class="material-symbols-outlined">database_export</span> Export Tables</h1>
@@ -22,20 +21,27 @@
             </option>
           </select>
         </div>
+          <div class="format-container">
+          <span class="material-symbols-outlined select-icon">description</span>
+          <select v-model="selectedFormat" class="export-select">
+            <option disabled value="">Choose format</option>
+            <option v-for="format in exportFormats" :key="format.value" :value="format.value">
+              {{ format.label }}
+            </option>
+          </select>
+        </div>
 
         <div class="button-group">
           <button :disabled="!selectedTable || isLoading" @click="fetchPreview" class="action-btn preview-button">
             <span class="material-symbols-outlined">preview</span>
             {{ isLoading ? "Loading..." : "Preview Data" }}
-          </button>
-
-          <button
-            :disabled="!selectedTable || isExporting"
+          </button>          <button
+            :disabled="!selectedTable || !selectedFormat || isExporting"
             @click="exportTable"
             class="action-btn export-button"
           >
             <span class="material-symbols-outlined">file_download</span>
-            {{ isExporting ? "Exporting..." : "Export to Excel" }}
+            {{ isExporting ? "Exporting..." : `Export to ${getFormatLabel()}` }}
           </button>
         </div>
 
@@ -76,29 +82,47 @@
 </template>
 
 <script>
+import { getTablePreview, exportTable } from "@/api/BackendApi";
+import { API_URL } from "@/api/BackendApi";
+
 export default {
   name: "ExportData",
   data() {
     return {
       selectedTable: "",
+      selectedFormat: "excel", // Default format
       isLoading: false,
       isExporting: false,
       errorMessage: "",
       tablePreview: [],
-      tableHeaders: [],
-      tables: [
+      tableHeaders: [],      tables: [
         "user",
         "trip",
         "destination",
         "budget",
         "admin",
         "alert",
-        "allergy"
+        "allergy",
+        "stop"
       ],
+      exportFormats: [
+        { label: "Excel", value: "excel", extension: "xlsx" },
+        { label: "PDF", value: "pdf", extension: "pdf" },
+        { label: "CSV", value: "csv", extension: "csv" }
+      ]
     };
   },
   methods: {
-    async fetchPreview() {
+    getFormatLabel() {
+      const format = this.exportFormats.find(f => f.value === this.selectedFormat);
+      return format ? format.label : 'Unknown';
+    },
+    
+    getFormatExtension() {
+      const format = this.exportFormats.find(f => f.value === this.selectedFormat);
+      return format ? format.extension : 'unknown';
+    },
+      async fetchPreview() {
       if (!this.selectedTable) return;
 
       this.isLoading = true;
@@ -106,47 +130,46 @@ export default {
       this.tablePreview = [];
 
       try {
-        const response = await fetch(
-          `https://smart-travel-planner-app-backend-production.up.railway.app/api/preview/${this.selectedTable}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch preview.");
-        }
-
-        const data = await response.json();
-        this.tablePreview = data;
-        this.tableHeaders = data.length > 0 ? Object.keys(data[0]) : [];
+        const response = await getTablePreview(this.selectedTable);
+        this.tablePreview = response.data;
+        this.tableHeaders = response.data.length > 0 ? Object.keys(response.data[0]) : [];
       } catch (error) {
-        this.errorMessage = error.message;
+        console.error("Preview fetch error:", error);
+        this.errorMessage = error.response?.data?.error || error.message || "Failed to fetch preview.";
       } finally {
         this.isLoading = false;
       }
     },
 
     async exportTable() {
+      if (!this.selectedTable || !this.selectedFormat) return;
+      
       this.isExporting = true;
       this.errorMessage = "";
+      
+      const url = `${API_URL}/export/${this.selectedTable}/${this.selectedFormat}`;
+      console.log("Exporting from URL:", url);
 
       try {
-        const response = await fetch(
-          `https://smart-travel-planner-app-backend-production.up.railway.app/api/export/${this.selectedTable}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Export failed. Try again.");
-        }
-
-        const blob = await response.blob();
+        const response = await exportTable(this.selectedTable, this.selectedFormat);
+        
+        // Create blob from response data
+        const blob = response.data;
         const url = window.URL.createObjectURL(blob);
-
+        
+        // Create temporary link and trigger download
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${this.selectedTable}.xlsx`;
+        a.download = `${this.selectedTable}.${this.getFormatExtension()}`;
+        document.body.appendChild(a);
         a.click();
+        
+        // Clean up
         window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
       } catch (error) {
-        this.errorMessage = error.message;
+        console.error("Export error:", error);
+        this.errorMessage = error.response?.data?.error || error.message || "Export failed. Try again.";
       } finally {
         this.isExporting = false;
       }
@@ -215,9 +238,13 @@ export default {
   color: #64748b;
 }
 
-.select-container {
+.select-container, .format-container {
   position: relative;
-  margin: 1.5rem;
+  margin: 1.5rem 1.5rem 0;
+}
+
+.format-container {
+  margin-bottom: 1.5rem;
 }
 
 .select-icon {
