@@ -86,15 +86,15 @@
       </div>
 
       <div class="action-grid">
-        <button @click="$router.push('/trips')" class="action-btn primary">
+        <button @click="$router.push('/trips')" class="action-btn primary"  v-if="user.user_role != 'admin'">
           <span class="material-symbols-outlined">luggage</span>
           My Trips
         </button>
-        <button @click="$router.push('/alerts')" class="action-btn">
+        <button @click="$router.push('/alerts')" class="action-btn" v-if="user.user_role != 'admin'">
           <span class="material-symbols-outlined">notifications</span>
           My Alerts
         </button>
-        <button @click="$router.push('/allergies')" class="action-btn">
+        <button @click="$router.push('/allergies')" class="action-btn" v-if="user.user_role != 'admin'">
           <span class="material-symbols-outlined">allergies</span>
           My Allergies
         </button>

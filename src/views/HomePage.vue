@@ -14,7 +14,7 @@
         
             <div v-else class="grid-list-2">
                             
-                    <TripPlanner />
+                    <TripPlanner  v-if="user.user_role != 'admin'" />
                     <section class="features">
                         <div class="feature">
                             <div class="feature-icon">
@@ -49,6 +49,7 @@
 <script>
 //import LocationSearch from "@/components/maps/LocationSearch.vue";
 import TripPlanner from "@/components/trip/TripPlanner.vue";
+import { mapState } from "vuex";
 
 export default {
     components: {
@@ -61,6 +62,9 @@ export default {
         };
     },
     name: "LandingPage",
+    computed: {
+    ...mapState(["user"]),
+    },
     methods: {
         navigateToExplore() {
             this.$router.push({ name: "Explore" });
