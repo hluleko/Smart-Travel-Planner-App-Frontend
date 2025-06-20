@@ -2,7 +2,7 @@
   <div class="budget-breakdown">
     <button class="toggle-btn" @click="isOpen = !isOpen">
       <span class="material-symbols-outlined">{{ isOpen ? 'expand_less' : 'expand_more' }}</span>
-      {{ isOpen ? 'Hide Budget Details' : 'Show Budget Details' }}
+      {{ isOpen ? 'Hide Cost Details' : 'Show Cost Details' }}
     </button>
     
     <div v-if="isOpen" class="breakdown-content">
@@ -57,7 +57,7 @@
       </div>
       
       <div class="breakdown-total">
-        <div>Total Estimated Budget:</div>
+        <div>Total Estimated Cost:</div>
         <div class="total-amount">R{{ breakdown.totalMin.toLocaleString() }} - R{{ breakdown.totalMax.toLocaleString() }}</div>
       </div>
     </div>

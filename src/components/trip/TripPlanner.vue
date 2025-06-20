@@ -85,7 +85,7 @@ import TripForm from "./TripForm.vue";
 import PlaceList from "./PlaceList.vue";
 import { googleMapsApiKey } from "@/config";
 import { mapState } from "vuex";
-import { createTrip, addDestination, addBudget, createAlert, createStop, getUserAllergies, getTripsByUserId } from "@/api/BackendApi";
+import { createTrip, addDestination, addCost, createAlert, createStop, getUserAllergies, getTripsByUserId } from "@/api/BackendApi";
 import Popup from "@/components/common/PopUp.vue";
 import StopSelector from "./StopSelector.vue";
 import AllergyWarning from "./AllergyWarning.vue";
@@ -532,11 +532,11 @@ export default {
           console.log("No stops to add to the trip");
         }
         
-        this.popupMessage = "Now creating budget...";
+        this.popupMessage = "Now creating cost...";
 
-        // Extract the budget object
+        // Extract the budget/cost object
         const budgetData = place.budget;
-        let minAmount, maxAmount, budgetBreakdown;
+        let amount, costBreakdown;
         
         // Handle both old string format and new object format
         if (typeof budgetData === 'string') {
@@ -545,23 +545,22 @@ export default {
             .replace(/\s/g, "")
             .split("-")
             .map((b) => parseInt(b.replace(/,/g, ""), 10));
-          minAmount = budgetRange[0];
-          maxAmount = budgetRange[1];
-          budgetBreakdown = null;
+          // For simplicity, take the average of min and max as the single amount
+          amount = Math.floor((budgetRange[0] + budgetRange[1]) / 2);
+          costBreakdown = null;
         } else {
-          minAmount = budgetData.breakdown.totalMin;
-          maxAmount = budgetData.breakdown.totalMax;
-          budgetBreakdown = JSON.stringify(budgetData.breakdown);
+          // Use totalMax as the total cost amount
+          amount = budgetData.breakdown.totalMax;
+          costBreakdown = JSON.stringify(budgetData.breakdown);
         }
         
-        const budgetPayload = {
+        const costPayload = {
           trip_id: tripId,
-          min_amount: minAmount,
-          max_amount: maxAmount,
-          breakdown: budgetBreakdown
+          amount: amount,
+          breakdown: costBreakdown
         };
         
-        await addBudget(token, budgetPayload);
+        await addCost(token, costPayload);
 
         this.popupMessage = "Almost done, please be patient...";
 

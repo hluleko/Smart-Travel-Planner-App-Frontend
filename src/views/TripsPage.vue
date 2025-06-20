@@ -66,13 +66,13 @@
             <div class="detail-item">
               <span class="material-symbols-outlined">wallet</span>
               <div>
-                <p class="detail-label">Budget</p>
+                <p class="detail-label">Cost</p>
                 <p class="detail-value">
-                  R{{ trip.budget?.min_amount || "N/A" }} – R{{ trip.budget?.max_amount || "N/A" }}
+                  R{{ formatCurrency(trip.cost?.amount) || "N/A" }}
                 </p>
                 <BudgetBreakdown 
-                  v-if="trip.budget && trip.budget.breakdown" 
-                  :breakdown="parseBreakdown(trip.budget.breakdown)"
+                  v-if="trip.cost && trip.cost.breakdown" 
+                  :breakdown="parseBreakdown(trip.cost.breakdown)"
                   :numPeople="trip.number_of_people || 1"
                   :days="calculateDays(trip.start_date, trip.end_date)"
                 />
@@ -116,7 +116,7 @@ import {
   getTripsByUserId,
   deleteTrip,
   getDestinationById,
-  getBudgetByTripId,
+  getCostByTripId,
   createAlert,
   getStopsByTripId
 } from "@/api/BackendApi";
@@ -152,7 +152,7 @@ export default {
         const tripsWithData = await Promise.all(
           response.data.map(async (trip) => {
             let destination = null;
-            let budget = null;
+            let cost = null;
             let stops = [];
 
             try {
@@ -166,13 +166,13 @@ export default {
             }
 
             try {
-              const budgetResponse = await getBudgetByTripId(
+              const costResponse = await getCostByTripId(
                 this.authToken,
                 trip.trip_id
               );
-              budget = budgetResponse.data;
+              cost = costResponse.data;
             } catch (err) {
-              console.error("Error fetching budget:", err);
+              console.error("Error fetching cost:", err);
             }
 
             // Fetch stops for this trip
@@ -189,7 +189,7 @@ export default {
             return {
               ...trip,
               destination,
-              budget,
+              cost,
               stops
             };
           })
@@ -258,6 +258,10 @@ export default {
       const end = new Date(endDate);
       const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24));
       return days > 0 ? days : 1;
+    },
+    formatCurrency(amount) {
+      if (!amount) return "N/A";
+      return Number(amount).toLocaleString();
     },
   },
   mounted() {
