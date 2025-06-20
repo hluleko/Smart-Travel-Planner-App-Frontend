@@ -35,6 +35,8 @@
                 class="date-input" 
                 :min="today"
                 placeholder="Select start date"
+                required
+                :class="{ 'input-invalid': showValidationErrors && !localStartDate }"
               />
             </div>
             
@@ -50,6 +52,8 @@
                 class="date-input" 
                 :min="today"
                 placeholder="Select end date"
+                required
+                :class="{ 'input-invalid': showValidationErrors && !localEndDate }"
               />
             </div>
           </div>
@@ -135,6 +139,7 @@ export default {
       localNumPeople: this.numPeople || '', // default to empty if not set
       fromAutocomplete: null,
       toAutocomplete: null,
+      showValidationErrors: false,
       filters: {
         familyFriendly: false,
         petFriendly: false,
@@ -186,6 +191,29 @@ export default {
   },
   methods: {
     emitSearch() {
+      // Show validation errors for all subsequent checks
+      this.showValidationErrors = true;
+      
+      // Check if dates are selected
+      if (!this.localStartDate || !this.localEndDate) {
+        alert('Please select both start and end dates before searching.');
+        return;
+      }
+      
+      // Check if end date is not before start date
+      const startDate = new Date(this.localStartDate);
+      const endDate = new Date(this.localEndDate);
+      if (endDate < startDate) {
+        alert('End date cannot be before start date.');
+        return;
+      }
+      
+      // Check if locations are selected
+      if (!this.localFromQuery || !this.localSearchQuery) {
+        alert('Please enter both your starting location and destination.');
+        return;
+      }
+      
       this.$emit("search");
     },
     initAutocomplete() {
@@ -415,6 +443,12 @@ h2 {
 .date-input:focus {
   border-color: #0071c2;
   box-shadow: 0 0 0 2px rgba(0, 113, 194, 0.1);
+}
+
+.input-invalid {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.1) !important;
+  background-color: rgba(220, 53, 69, 0.05) !important;
 }
 
 @media (max-width: 768px) {
