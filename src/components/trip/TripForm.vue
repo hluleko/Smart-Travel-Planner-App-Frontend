@@ -73,6 +73,36 @@
         </div>
       </div>
     </div>
+    
+    <div class="trip-filter-options">
+      <h3>Trip Preferences</h3>
+      <div class="checkbox-grid">
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="filters.familyFriendly">
+          <span class="checkbox-label">Family Friendly</span>
+        </label>
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="filters.petFriendly">
+          <span class="checkbox-label">Pet Friendly</span>
+        </label>
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="filters.wheelchairAccessible">
+          <span class="checkbox-label">Wheelchair Accessible</span>
+        </label>
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="filters.wifi">
+          <span class="checkbox-label">WiFi Available</span>
+        </label>
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="filters.parking">
+          <span class="checkbox-label">Free Parking</span>
+        </label>
+        <label class="checkbox-container">
+          <input type="checkbox" v-model="filters.outdoorActivities">
+          <span class="checkbox-label">Outdoor Activities</span>
+        </label>
+      </div>
+    </div>
 
     <button @click="emitSearch" class="search-button">Search</button>
   </div>
@@ -93,7 +123,8 @@ export default {
     "update:numPeople", 
     "search",
     "fromLocationSelected",
-    "toLocationSelected"
+    "toLocationSelected",
+    "filtersChanged"
   ],
   data() {
     return {
@@ -104,6 +135,14 @@ export default {
       localNumPeople: this.numPeople || '', // default to empty if not set
       fromAutocomplete: null,
       toAutocomplete: null,
+      filters: {
+        familyFriendly: false,
+        petFriendly: false,
+        wheelchairAccessible: false,
+        wifi: false,
+        parking: false,
+        outdoorActivities: false
+      }
     };
   },
   computed: {
@@ -138,6 +177,12 @@ export default {
     localNumPeople(val) {
       this.$emit("update:numPeople", val);
     },
+    filters: {
+      handler(newFilters) {
+        this.$emit("filtersChanged", newFilters);
+      },
+      deep: true
+    }
   },
   methods: {
     emitSearch() {
@@ -328,14 +373,6 @@ h2 {
     }
 }
 
-
-
-
-
-
-
-
-
 .date-group {
   width: 100%;
 }
@@ -401,5 +438,52 @@ h2 {
   gap: 0.3rem;
   color: #666;
   margin-bottom: 10px;
+}
+
+/* Trip Filter Options Styling */
+.trip-filter-options {
+  margin: 1.5rem 0;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.trip-filter-options h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--secondary);
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: #444;
+}
+
+@media (max-width: 768px) {
+  .checkbox-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

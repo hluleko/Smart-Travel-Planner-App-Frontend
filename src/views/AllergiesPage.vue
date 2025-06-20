@@ -18,6 +18,37 @@
         <option value="Moderate">Moderate</option>
         <option value="High">High</option>
       </select>
+      
+      <div class="category-section">
+        <h4>Allergy Category</h4>
+        <div class="checkbox-grid">
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="newAllergy.categories" value="Food">
+            <span class="checkbox-label">Food</span>
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="newAllergy.categories" value="Pollen">
+            <span class="checkbox-label">Pollen</span>
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="newAllergy.categories" value="Pet">
+            <span class="checkbox-label">Pet</span>
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="newAllergy.categories" value="Insect">
+            <span class="checkbox-label">Insect</span>
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="newAllergy.categories" value="Medication">
+            <span class="checkbox-label">Medication</span>
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" v-model="newAllergy.categories" value="Other">
+            <span class="checkbox-label">Other</span>
+          </label>
+        </div>
+      </div>
+      
       <div class="form-buttons">
         <button @click="submitNewAllergy">Submit</button>
         <button @click="showAddForm = false" class="cancel-btn">Cancel</button>
@@ -48,6 +79,13 @@
               {{ formatDate(allergy.added_at) }}
             </span>
           </div>
+          <div class="allergy-categories" v-if="allergy.categories && allergy.categories.length > 0">
+            <div class="category-chips">
+              <span class="category-chip" v-for="(category, idx) in allergy.categories" :key="idx">
+                {{ category }}
+              </span>
+            </div>
+          </div>
         </div>
         <div class="allergy-actions">
           <button @click="deleteAllergyRecord(allergy.allergy_id)" class="delete-btn">
@@ -73,6 +111,7 @@ export default {
       newAllergy: {
         name: "",
         severity: "",
+        categories: []
       },
     };
   },
@@ -128,7 +167,7 @@ export default {
         };
 
         await addAllergy(this.token, allergyData);
-        this.newAllergy = { name: "", severity: "" };
+        this.newAllergy = { name: "", severity: "", categories: [] };
         this.showAddForm = false;
         this.fetchAllergies();
 
@@ -229,6 +268,39 @@ export default {
   font-size: 1rem;
 }
 
+.category-section {
+  margin-top: 0.5rem;
+}
+
+.category-section h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  color: #4a5568;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.checkbox-container input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
 .form-buttons {
   display: flex;
   gap: 1rem;
@@ -301,6 +373,24 @@ export default {
   gap: 1.5rem;
   font-size: 0.875rem;
   color: #718096;
+}
+
+.allergy-categories {
+  margin-top: 0.75rem;
+}
+
+.category-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.category-chip {
+  background: #e6fffa;
+  color: #319795;
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
 }
 
 .severity {
@@ -382,6 +472,10 @@ export default {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
+  }
+  
+  .checkbox-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
