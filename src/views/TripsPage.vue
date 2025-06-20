@@ -59,7 +59,7 @@
               <span class="material-symbols-outlined">calendar_today</span>
               <div>
                 <p class="detail-label">Dates</p>
-                <p class="detail-value">{{ trip.start_date }} – {{ trip.end_date }}</p>
+                <p class="detail-value">{{ formatDateForDisplay(trip.start_date) }} – {{ formatDateForDisplay(trip.end_date) }}</p>
               </div>
             </div>
             
@@ -106,6 +106,13 @@
             <div class="status-badge completed">
               <span class="material-symbols-outlined">check_circle</span>
               Trip Completed
+            </div>
+          </div>
+          
+          <div class="trip-status" v-if="isPastStartDate(trip) && !trip.trip_started && !trip.trip_ended">
+            <div class="status-badge overdue">
+              <span class="material-symbols-outlined">schedule</span>
+              Start Date Passed
             </div>
           </div>
           
@@ -343,6 +350,26 @@ export default {
       if (!amount) return "N/A";
       return Number(amount).toLocaleString();
     },
+    formatDateForDisplay(dateString) {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { 
+        weekday: 'short', 
+        day: 'numeric', 
+        month: 'short', 
+        year: 'numeric' 
+      });
+    },
+    isPastStartDate(trip) {
+      if (!trip.start_date) return false;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time part for comparison
+      
+      const startDate = new Date(trip.start_date);
+      startDate.setHours(0, 0, 0, 0);
+      
+      return startDate < today;
+    },
   },
   mounted() {
     this.fetchTrips();
@@ -523,6 +550,11 @@ font-weight: 500;
 .completed {
   background-color: #e8f5e9;
   color: #2e7d32;
+}
+
+.overdue {
+  background-color: #fff3e0;
+  color: #e65100;
 }
 
 .trip-actions {
