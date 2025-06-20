@@ -14,7 +14,7 @@
         
             <div v-else class="grid-list-2">
                             
-                    <TripPlanner  v-if="user.user_role != 'admin'" />
+                    <TripPlanner  v-if="user?.user_role != 'admin'" />
                     <section class="features">
                         <div class="feature">
                             <div class="feature-icon">
