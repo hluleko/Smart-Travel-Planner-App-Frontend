@@ -1,6 +1,8 @@
 import axios from "axios";
 
-const API_URL = "https://smart-travel-planner-app-backend-production.up.railway.app/api";
+//const API_URL = "https://smart-travel-planner-app-backend-production.up.railway.app/api";
+//export const API_URL = process.env.VUE_APP_API_URL || 'http://localhost:8080/api';
+export const API_URL = 'https://smart-travel-planner-app-backend-production.up.railway.app/api';
 
 // ===== User Authentication =====
 export const registerUser = (user) => axios.post(`${API_URL}/users/register`, user);
