@@ -62,7 +62,7 @@
       </div>
 
       <div ref="mapContainer" class="map-container">
-        <div v-if="loading" class="loading-map">
+        <div v-show="loading" class="loading-map">
           <span class="material-symbols-outlined spin">progress_activity</span>
           <p>Loading map...</p>
         </div>
@@ -111,7 +111,8 @@ export default {
       googleMapsLoaded: false,
       googleMapsScriptElement: null,
       componentMounted: false, // Add this flag to track component mounting
-      stops: []
+      stops: [],
+      mapInitTimeout: null // Renamed from _mapInitTimeout to remove the underscore
     };
   },
   computed: {
@@ -187,42 +188,53 @@ export default {
     },
     
     loadGoogleMapsScript() {
+      // Ensure we only execute this in client-side environment
+      if (typeof window === 'undefined') {
+        console.error('Window is not available - cannot load Google Maps script');
+        return;
+      }
+      
       // If Google Maps API is already loaded
       if (window.google && window.google.maps) {
         this.googleMapsLoaded = true;
         return;
       }
       
-      // Clean up existing script tag if it exists
-      if (this.googleMapsScriptElement) {
-        document.head.removeChild(this.googleMapsScriptElement);
-      }
-      
-      // Create a new script element
-      this.googleMapsScriptElement = document.createElement("script");
-      this.googleMapsScriptElement.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=googleMapsCallback`;
-      this.googleMapsScriptElement.async = true;
-      this.googleMapsScriptElement.defer = true;
-      
-      // Define the callback function in the global scope
-      window.googleMapsCallback = () => {
-        // Check if component is still mounted before proceeding
-        if (this.componentMounted) {
-          this.googleMapsLoaded = true;
-        }
-      };
-      
-      // Handle script load errors
-      this.googleMapsScriptElement.onerror = () => {
-        console.error("Failed to load Google Maps API");
-        if (this.componentMounted) {
+      // Wait for the next tick to ensure DOM is ready
+      this.$nextTick(() => {
+        try {
+          // Define the callback function in the global scope first
+          window.googleMapsCallback = () => {
+            if (this.componentMounted) {
+              this.googleMapsLoaded = true;
+            }
+          };
+          
+          // Create a new script element
+          const script = document.createElement('script');
+          script.src = `https://maps.googleapis.com/maps/api/js?key=${googleMapsApiKey}&libraries=places&callback=googleMapsCallback`;
+          script.async = true;
+          script.defer = true;
+          
+          // Handle script load errors
+          script.onerror = () => {
+            console.error("Failed to load Google Maps API");
+            if (this.componentMounted) {
+              this.loading = false;
+              alert("Failed to load maps. Please check your internet connection and try again.");
+            }
+          };
+          
+          // Store reference for cleanup
+          this.googleMapsScriptElement = script;
+          
+          // Append to document
+          document.body.appendChild(script);
+        } catch (error) {
+          console.error('Error loading Google Maps script:', error);
           this.loading = false;
-          alert("Failed to load maps. Please check your internet connection and try again.");
         }
-      };
-      
-      // Append the script to the document
-      document.head.appendChild(this.googleMapsScriptElement);
+      });
     },
     
     tryInitializeMap() {
@@ -295,7 +307,14 @@ export default {
         
         // Calculate and display route after map is initialized - use a slightly longer timeout
         if (this.componentMounted) { // Only proceed if component is still mounted
-          setTimeout(() => {
+          // Clear any existing timeout
+          if (this.mapInitTimeout) {
+            clearTimeout(this.mapInitTimeout);
+          }
+          
+          // Store the timeout ID for cleanup - updated property name here
+          this.mapInitTimeout = setTimeout(() => {
+            this.mapInitTimeout = null;
             if (this.componentMounted) { // Check again inside the timeout
               this.calculateAndDisplayRoute();
             }
@@ -354,33 +373,36 @@ export default {
         this.loading = false;
         
         if (status === window.google.maps.DirectionsStatus.OK) {
-          // Make sure renderer is still valid
-          if (this.directionsRenderer && this.map) {
-            this.directionsRenderer.setDirections(response);
-          
-            // Extract route information
-            const route = response.routes[0];
-            if (route && route.legs.length > 0) {
-              const leg = route.legs[0];
-              this.routeInfo.distance = leg.distance.text;
-              this.routeInfo.duration = leg.duration.text;
+          // Make sure renderer is still valid and component is still mounted
+          if (this.directionsRenderer && this.map && this.componentMounted && this.$refs.mapContainer) {
+            try {
+              this.directionsRenderer.setDirections(response);
+            
+              // Extract route information
+              const route = response.routes[0];
+              if (route && route.legs.length > 0) {
+                const leg = route.legs[0];
+                this.routeInfo.distance = leg.distance.text;
+                this.routeInfo.duration = leg.duration.text;
+              }
+            } catch (error) {
+              console.error("Error setting directions:", error);
             }
           }
         } else {
           console.error("Directions request failed due to " + status);
-          if (this.componentMounted) {
-            alert("Could not calculate directions. Please try again.");
-          }
+          // Alert user of the error (fixing the incomplete if statement)
+          alert("Could not calculate directions. Please try again later.");
         }
       });
     },
     
     openInGoogleMaps() {
-      const origin = encodeURIComponent(this.trip.starting_point || "Current+Location");
-      const destination = encodeURIComponent(this.trip.destination?.location || "");
+      const origin = this.trip.starting_point || "Current Location";
+      const destination = this.trip.destination?.location;
       
       if (!destination) {
-        alert("Destination not available.");
+        alert("No destination specified");
         return;
       }
       
@@ -392,9 +414,19 @@ export default {
       // Set component as unmounted first to prevent further operations
       this.componentMounted = false;
       
+      // Clear timeout if it exists
+      if (this.mapInitTimeout) {
+        clearTimeout(this.mapInitTimeout);
+        this.mapInitTimeout = null;
+      }
+      
       // Clean up directions renderer
       if (this.directionsRenderer) {
-        this.directionsRenderer.setMap(null);
+        try {
+          this.directionsRenderer.setMap(null);
+        } catch (e) {
+          console.error("Error cleaning up renderer:", e);
+        }
         this.directionsRenderer = null;
       }
       
@@ -404,13 +436,20 @@ export default {
       this.mapInitialized = false;
       
       // Remove callback from global scope
-      if (window.googleMapsCallback) {
+      if (typeof window !== 'undefined' && window.googleMapsCallback) {
         delete window.googleMapsCallback;
       }
       
-      // Remove script element from head if it exists
-      if (this.googleMapsScriptElement && this.googleMapsScriptElement.parentNode) {
-        this.googleMapsScriptElement.parentNode.removeChild(this.googleMapsScriptElement);
+      // Remove script element from document if it exists
+      if (typeof document !== 'undefined' && this.googleMapsScriptElement) {
+        try {
+          const scriptElement = this.googleMapsScriptElement;
+          if (scriptElement.parentNode) {
+            scriptElement.parentNode.removeChild(scriptElement);
+          }
+        } catch (e) {
+          console.error("Error removing script element:", e);
+        }
         this.googleMapsScriptElement = null;
       }
       
