@@ -33,6 +33,24 @@
          <b>Loading sites near you...</b>
     </div>
 
+    <!-- Login Required Popup -->
+    <Popup v-if="showLoginPrompt" :visible="showLoginPrompt" title="Login Required" @close="closeLoginPrompt">
+      <template #actions>
+        <div class="notification-container">
+          <div class="message-content">
+            <p>You need to sign in to create a trip.</p>
+          </div>
+        </div>
+        <div class="popup-actions">
+          <button @click="redirectToLogin" class="login-btn">
+            <span class="material-symbols-outlined">login</span>
+            Sign in
+          </button>
+          <button @click="closeLoginPrompt" class="cancel-btn">Cancel</button>
+        </div>
+      </template>
+    </Popup>
+
     <!-- Status Popup -->
     <Popup v-if="showPopup" :visible="showPopup" title="Creating Trip" @close="showPopup = false">
       <template #actions>
@@ -124,6 +142,7 @@ export default {
       overlapMessage: "",
       pendingTripCreation: null,
       userTrips: [],
+      showLoginPrompt: false,
     };
   },
   computed: {
@@ -346,8 +365,8 @@ export default {
                       rating: details.rating,
                       address: details.formatted_address,
                       photo: details.photos?.[0]?.getUrl({ maxWidth: 300 }) || null,
-                      distance, // Store the individual distance for this place
-                      budget,
+                      distance: distance, // Fix: Properly assign the distance value
+                      budget: budget // Fix: Properly assign the budget object
                     });
                   } else {
                     resolve(null);
@@ -427,6 +446,12 @@ export default {
     },
     
     async createTrip(place) {
+      // Check if user is logged in first
+      if (!this.token || !this.userId) {
+        this.showLoginPrompt = true;
+        return;
+      }
+      
       // Store place for later use if we need to proceed after confirmation
       this.pendingTripCreation = place;
       
@@ -642,6 +667,14 @@ export default {
         day: 'numeric'
       });
     },
+    closeLoginPrompt() {
+      this.showLoginPrompt = false;
+    },
+    
+    redirectToLogin() {
+      this.showLoginPrompt = false;
+      this.$router.push('/login');
+    },
   },
 };
 </script>
@@ -678,6 +711,44 @@ export default {
   font-size: 0.9rem;
   color: #666;
   margin-top: 4px;
+}
+
+/* Login popup styles */
+.popup-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.login-btn, .cancel-btn {
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.login-btn {
+  background: var(--secondary);
+  color: white;
+}
+
+.login-btn:hover {
+  background: #2e7d32;
+}
+
+.cancel-btn {
+  background: #f1f3f5;
+  color: #495057;
+}
+
+.cancel-btn:hover {
+  background: #e9ecef;
 }
 </style>
 

@@ -78,7 +78,7 @@
       </div>
     </div>
     
-    <div class="trip-filter-options">
+    <div class="trip-filter-options" style="display: none;">
       <h3>Trip Preferences</h3>
       <div class="checkbox-grid">
         <label class="checkbox-container">

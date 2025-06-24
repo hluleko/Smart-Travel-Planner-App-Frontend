@@ -18,7 +18,7 @@
         <span class="material-symbols-outlined">wallet</span>
         <p>
           Est. Budget for {{ numPeople }} {{ numPeople > 1 ? 'people' : 'person' }}:
-          <strong>{{ place.budget }}</strong>
+          <strong>{{ formatBudget(place.budget) }}</strong>
         </p>
       </div>
 
@@ -81,6 +81,19 @@ export default {
       }
 
       this.$emit("createTrip", this.place);
+    },
+    formatBudget(budget) {
+      if (!budget) return 'N/A';
+      
+      if (typeof budget === 'string') {
+        return budget;
+      }
+      
+      if (budget.simple) {
+        return budget.simple;
+      }
+      
+      return 'N/A';
     },
   },
 };
