@@ -30,10 +30,6 @@ const routes = [
     component: () => import('./views/AlertsPage.vue'),
   },
   { 
-    path: '/allergies', 
-    component: () => import('./views/AllergiesPage.vue'),
-  },
-  { 
     path: '/export', 
     component: () => import('./views/ExportPage.vue'),
   },

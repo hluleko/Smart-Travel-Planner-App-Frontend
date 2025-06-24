@@ -94,10 +94,6 @@
           <span class="material-symbols-outlined">notifications</span>
           My Alerts
         </button>
-        <button @click="$router.push('/allergies')" class="action-btn" v-if="user.user_role != 'admin'">
-          <span class="material-symbols-outlined">allergies</span>
-          My Allergies
-        </button>
         <button @click="$router.push('/admin-dashboard')" class="action-btn primary" v-if="user.user_role == 'admin'">
           <span class="material-symbols-outlined">admin_panel_settings</span>
           Admin Dashboard
